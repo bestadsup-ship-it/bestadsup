@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>B2B Ad Platform - Simple, Fast, Reliable</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    header { background: #0066cc; color: white; padding: 20px 0; }
+    header h1 { font-size: 2em; }
+    header p { opacity: 0.9; }
+    nav { background: #005bb5; padding: 10px 0; }
+    nav a { color: white; text-decoration: none; margin-right: 20px; }
+    .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 0; text-align: center; }
+    .hero h2 { font-size: 2.5em; margin-bottom: 20px; }
+    .hero p { font-size: 1.2em; margin-bottom: 30px; }
+    .btn { display: inline-block; background: white; color: #667eea; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+    .features { padding: 60px 0; background: #f5f5f5; }
+    .features h2 { text-align: center; margin-bottom: 40px; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+    .feature { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .feature h3 { color: #0066cc; margin-bottom: 10px; }
+    .stats { padding: 60px 0; text-align: center; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; }
+    .stat { padding: 20px; }
+    .stat-number { font-size: 3em; color: #0066cc; font-weight: bold; }
+    .stat-label { color: #666; }
+    footer { background: #333; color: white; text-align: center; padding: 30px 0; }
+    footer a { color: #667eea; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>B2B Ad Platform</h1>
+      <p>Simple, Fast, Reliable Ad Serving for B2B Publishers</p>
+    </div>
+  </header>
+
+  <nav>
+    <div class="container">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#docs">Docs</a>
+      <a href="http://localhost:3005">Dashboard</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <h2>Serve Ads That Perform</h2>
+      <p>Low latency ad serving with simple integration and clear metrics</p>
+      <a href="http://localhost:3005" class="btn">Get Started</a>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="container">
+      <h2>Why Choose Us?</h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3>⚡ Lightning Fast</h3>
+          <p>P95 latency under 300ms. Non-blocking JavaScript tag with 500ms timeout.</p>
+        </div>
+        <div class="feature">
+          <h3>📊 Clear Metrics</h3>
+          <p>Track impressions, clicks, revenue, and fill rates with ≤5 minute data freshness.</p>
+        </div>
+        <div class="feature">
+          <h3>🎯 Simple Integration</h3>
+          <p>Single JavaScript tag integration. No complex setup required.</p>
+        </div>
+        <div class="feature">
+          <h3>💰 Static CPM</h3>
+          <p>Predictable revenue with direct-sold campaigns at fixed CPM rates.</p>
+        </div>
+        <div class="feature">
+          <h3>🔒 Secure & Private</h3>
+          <p>No PII storage. Account-scoped data isolation. GDPR-friendly.</p>
+        </div>
+        <div class="feature">
+          <h3>📈 Scalable</h3>
+          <p>Built to handle 10× traffic spikes with <0.1% error rate.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-number"><300ms</div>
+          <div class="stat-label">P95 Latency</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number"><10KB</div>
+          <div class="stat-label">JS Tag Size</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">99.9%</div>
+          <div class="stat-label">Uptime SLA</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2024 B2B Ad Platform. <a href="http://localhost:3005">Dashboard</a> | <a href="#docs">Documentation</a></p>
+    </div>
+  </footer>
+</body>
+</html>

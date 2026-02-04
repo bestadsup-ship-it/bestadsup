@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: adplatform
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: adplatform
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U adplatform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ad-server:
+    build:
+      context: .
+      dockerfile: services/ad-server/Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://adplatform:devpassword@postgres:5432/adplatform
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  control-plane:
+    build:
+      context: .
+      dockerfile: services/control-plane/Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - DATABASE_URL=postgresql://adplatform:devpassword@postgres:5432/adplatform
+      - JWT_SECRET=change-this-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  analytics-ingest:
+    build:
+      context: .
+      dockerfile: services/analytics-ingest/Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - DATABASE_URL=postgresql://adplatform:devpassword@postgres:5432/adplatform
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  reporting-api:
+    build:
+      context: .
+      dockerfile: services/reporting-api/Dockerfile
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=production
+      - PORT=3004
+      - DATABASE_URL=postgresql://adplatform:devpassword@postgres:5432/adplatform
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  marketing-site:
+    build:
+      context: .
+      dockerfile: services/marketing-site/Dockerfile
+    ports:
+      - "3000:80"
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: packages/dashboard/Dockerfile
+    ports:
+      - "3005:80"
+    environment:
+      - REACT_APP_CONTROL_PLANE_URL=http://localhost:3002
+      - REACT_APP_REPORTING_URL=http://localhost:3004
+
+volumes:
+  postgres_data:

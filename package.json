@@ -1,0 +1,30 @@
+{
+  "name": "b2b-ad-platform",
+  "version": "1.0.0",
+  "description": "B2B Under-Server Ad Platform MVP",
+  "private": true,
+  "workspaces": [
+    "services/marketing-site",
+    "services/control-plane",
+    "services/ad-server",
+    "services/analytics-ingest",
+    "services/reporting-api",
+    "packages/shared",
+    "packages/dashboard"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=services/ad-server\" \"npm run dev --workspace=services/control-plane\" \"npm run dev --workspace=services/analytics-ingest\" \"npm run dev --workspace=services/reporting-api\" \"npm run dev --workspace=packages/dashboard\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
