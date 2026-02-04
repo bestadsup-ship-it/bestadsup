@@ -8,7 +8,7 @@ COPY packages/shared/package*.json ./packages/shared/
 COPY services/ad-server/package*.json ./services/ad-server/
 
 # Install dependencies
-RUN npm ci --workspace=packages/shared --workspace=services/ad-server
+RUN npm install --workspace=packages/shared --workspace=services/ad-server
 
 # Copy source
 COPY packages/shared ./packages/shared
@@ -29,7 +29,7 @@ COPY packages/shared/package*.json ./packages/shared/
 COPY services/ad-server/package*.json ./services/ad-server/
 
 # Install production dependencies only
-RUN npm ci --workspace=packages/shared --workspace=services/ad-server --production
+RUN npm install --workspace=packages/shared --workspace=services/ad-server --production
 
 # Copy built files
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist

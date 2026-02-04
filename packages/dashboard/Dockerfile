@@ -5,12 +5,13 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY packages/dashboard/package*.json ./packages/dashboard/
 
 # Install dependencies
-RUN npm ci
+RUN npm install --workspace=packages/dashboard
 
 # Copy source code
-COPY . .
+COPY packages/dashboard ./packages/dashboard
 
 # Build arguments for environment variables
 ARG REACT_APP_CONTROL_PLANE_URL
@@ -20,16 +21,17 @@ ENV REACT_APP_CONTROL_PLANE_URL=${REACT_APP_CONTROL_PLANE_URL}
 ENV REACT_APP_REPORTING_URL=${REACT_APP_REPORTING_URL}
 
 # Build the application
+WORKDIR /app/packages/dashboard
 RUN npm run build
 
 # Production stage
 FROM nginx:alpine
 
 # Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY packages/dashboard/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built files from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/packages/dashboard/dist /usr/share/nginx/html
 
 # Expose port 80
 EXPOSE 80

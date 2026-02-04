@@ -8,7 +8,7 @@ COPY packages/shared/package*.json ./packages/shared/
 COPY services/analytics-ingest/package*.json ./services/analytics-ingest/
 
 # Install dependencies
-RUN npm ci --workspace=packages/shared --workspace=services/analytics-ingest
+RUN npm install --workspace=packages/shared --workspace=services/analytics-ingest
 
 # Copy source
 COPY packages/shared ./packages/shared
@@ -29,7 +29,7 @@ COPY packages/shared/package*.json ./packages/shared/
 COPY services/analytics-ingest/package*.json ./services/analytics-ingest/
 
 # Install production dependencies only
-RUN npm ci --workspace=packages/shared --workspace=services/analytics-ingest --production
+RUN npm install --workspace=packages/shared --workspace=services/analytics-ingest --production
 
 # Copy built files
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist

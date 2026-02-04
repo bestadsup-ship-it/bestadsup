@@ -3,12 +3,13 @@ import helmet from 'helmet';
 import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { createEventRouter } from './routes/event';
 import { createHealthRouter } from './routes/health';
 import { initializeDatabase } from './db';
 import { eventBuffer } from './event-buffer';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3003;

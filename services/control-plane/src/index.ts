@@ -2,6 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { Pool } from 'pg';
 import { authRouter } from './routes/auth';
 import { accountsRouter } from './routes/accounts';
@@ -10,7 +11,7 @@ import { adUnitsRouter } from './routes/ad-units';
 import { campaignsRouter } from './routes/campaigns';
 import { creativesRouter } from './routes/creatives';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3002;

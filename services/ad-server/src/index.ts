@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { createAdRouter } from './routes/ad';
 import { createHealthRouter } from './routes/health';
 import { metrics } from './metrics';
@@ -11,7 +12,7 @@ import { rateLimiter } from './middleware/rate-limiter';
 import { initializeDatabase } from './db';
 import { initializeCache } from './cache';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3001;

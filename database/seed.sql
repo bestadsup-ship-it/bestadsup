@@ -4,7 +4,7 @@
 -- Insert test account
 INSERT INTO accounts (id, name, email, password_hash)
 VALUES
-    ('00000000-0000-0000-0000-000000000001', 'Test Publisher', 'test@example.com', '$2b$10$rBV2uD.e8kN9p9LQYQX8.OQ4MjqJZKzH0Y.xGZN8kZX8kZX8kZX8k');
+    ('00000000-0000-0000-0000-000000000001', 'Test Publisher', 'test@example.com', '$2b$10$UWHH3qkZQasEhhHPBuDiKeV5otuZZBaP7zLv3JaReRSVBr9QJRUMW');
 
 -- Insert test property
 INSERT INTO properties (id, account_id, name, domain)

@@ -2,12 +2,13 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { initializeDatabase } from './db';
 import { initializeCache } from './cache';
 import { healthRouter } from './routes/health';
 import { metricsRouter } from './routes/metrics';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3004;
