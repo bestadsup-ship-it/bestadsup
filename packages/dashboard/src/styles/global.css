@@ -34,7 +34,7 @@ textarea {
 
 a {
   text-decoration: none;
-  color: #4f46e5;
+  color: #7EC850;
 }
 
 a:hover {
@@ -67,7 +67,7 @@ a:hover {
 }
 
 .btn-primary {
-  background-color: #4f46e5;
+  background-color: #7EC850;
   color: white;
   padding: 12px 24px;
   border-radius: 6px;
@@ -78,7 +78,7 @@ a:hover {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #4338ca;
+  background-color: #6BB33E;
 }
 
 .btn-primary:disabled {
@@ -93,13 +93,13 @@ a:hover {
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
-  border: 1px solid #ddd;
+  border: 1px solid #7EC850;
   transition: background-color 0.2s, border-color 0.2s;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #f9f9f9;
-  border-color: #bbb;
+  background-color: #f0fae8;
+  border-color: #7EC850;
 }
 
 .btn-secondary:disabled {

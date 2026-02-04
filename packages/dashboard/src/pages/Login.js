@@ -29,7 +29,12 @@ function Login() {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1>B2B Ad Platform</h1>
+          <img
+            src="/BestAdsUp.jpg"
+            alt="BestAdsUp Logo"
+            style={{ width: '80px', height: '80px', borderRadius: '50%', marginBottom: '1rem' }}
+          />
+          <h1>BestAdsUp</h1>
           <h2>Sign In</h2>
         </div>
 

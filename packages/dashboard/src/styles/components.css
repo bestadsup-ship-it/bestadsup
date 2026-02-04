@@ -64,9 +64,9 @@
 }
 
 .date-range-btn.active {
-  background: #4f46e5;
+  background: #7EC850;
   color: white;
-  border-color: #4f46e5;
+  border-color: #7EC850;
 }
 
 .custom-date-inputs {
@@ -99,8 +99,8 @@
 }
 
 .date-input-group input[type='date']:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: #7EC850;
+  box-shadow: 0 0 0 3px rgba(126, 200, 80, 0.1);
 }
 
 /* Ad Units Table */

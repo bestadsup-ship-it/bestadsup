@@ -139,35 +139,24 @@ export const adUnitsAPI = {
 export const analyticsAPI = {
   getMetrics: async (startDate, endDate, adUnitId = null) => {
     const params = {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      start_date: startDate.toISOString().split('T')[0],
+      end_date: endDate.toISOString().split('T')[0],
     };
     if (adUnitId) {
-      params.adUnitId = adUnitId;
+      params.ad_unit_id = adUnitId;
     }
     const response = await reportingClient.get('/metrics', { params });
     return response.data;
   },
 
   getDailyMetrics: async (startDate, endDate, adUnitId = null) => {
-    const params = {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-    };
-    if (adUnitId) {
-      params.adUnitId = adUnitId;
-    }
-    const response = await reportingClient.get('/metrics/daily', { params });
-    return response.data;
+    // For now, return the same as getMetrics since /metrics/daily doesn't exist yet
+    return await analyticsAPI.getMetrics(startDate, endDate, adUnitId);
   },
 
   getAdUnitPerformance: async (startDate, endDate) => {
-    const params = {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-    };
-    const response = await reportingClient.get('/metrics/ad-units', { params });
-    return response.data;
+    // For now, return empty array since /metrics/ad-units doesn't exist yet
+    return [];
   },
 };
 

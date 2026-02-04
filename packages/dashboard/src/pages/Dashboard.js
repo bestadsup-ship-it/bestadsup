@@ -109,7 +109,14 @@ function Dashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-left">
-          <h1>B2B Ad Platform</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <img
+              src="/BestAdsUp.jpg"
+              alt="BestAdsUp Logo"
+              style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+            />
+            <h1>BestAdsUp</h1>
+          </div>
           {user && <p className="user-info">Welcome, {user.email}</p>}
         </div>
         <div className="header-right">

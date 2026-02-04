@@ -1,4 +1,4 @@
-# B2B Ad Platform MVP
+# BestAdsUp
 
 A minimal, reliable ad-serving platform for B2B publishers with low latency and clear system boundaries.
 
