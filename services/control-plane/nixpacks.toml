@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["nodejs-18_x"]
+
+[phases.install]
+cmds = [
+  "cd ../.. && npm install",
+  "cd packages/shared && npm install && npm run build",
+  "cd ../../services/control-plane && npm install"
+]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"
