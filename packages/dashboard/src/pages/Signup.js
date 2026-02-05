@@ -32,7 +32,23 @@ function Signup() {
       await authAPI.signup(email, password, organizationName);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+      console.error('Signup error:', err);
+      // Extract error message from the API response
+      const errorMessage = err.response?.data?.error ||
+                          err.response?.data?.message ||
+                          err.message ||
+                          'Signup failed. Please try again.';
+
+      // Make error messages more user-friendly
+      if (errorMessage.includes('already exists') || errorMessage.includes('duplicate key')) {
+        setError('This email is already registered. Please try logging in or use a different email.');
+      } else if (errorMessage.includes('String must contain at least 8 character(s)')) {
+        setError('Password must be at least 8 characters long.');
+      } else if (errorMessage.includes('Invalid email')) {
+        setError('Please enter a valid email address.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

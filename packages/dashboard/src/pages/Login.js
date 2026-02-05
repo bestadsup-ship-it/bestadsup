@@ -20,11 +20,19 @@ function Login() {
       navigate('/');
     } catch (err) {
       console.error('Login error:', err);
-      const errorMessage = err.response?.data?.message
-        || err.response?.data?.error
-        || err.message
-        || 'Login failed. Please try again.';
-      setError(errorMessage);
+      const errorMessage = err.response?.data?.error ||
+                          err.response?.data?.message ||
+                          err.message ||
+                          'Login failed. Please try again.';
+
+      // Make error messages more user-friendly
+      if (errorMessage.includes('Invalid credentials') || errorMessage.includes('Unauthorized')) {
+        setError('Invalid email or password. Please try again.');
+      } else if (errorMessage.includes('Invalid email')) {
+        setError('Please enter a valid email address.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
