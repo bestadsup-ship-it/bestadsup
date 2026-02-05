@@ -15,7 +15,7 @@
   position: sticky;
   top: 0;
   z-index: 90;
-  margin-left: 240px;
+  margin-left: 200px;
 }
 
 .feed-header .header-left h1 {
@@ -144,20 +144,20 @@
 }
 
 .feed-main {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 24px;
-  margin-left: 240px;
-  width: calc(100% - 240px);
+  margin-left: 200px;
+  width: calc(100% - 200px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
+  min-height: calc(100vh - 72px);
 }
 
 .feed-content {
-  max-width: 680px;
-  margin: 0 auto;
+  max-width: 600px;
   width: 100%;
+  margin: 0 auto;
+  padding: 24px 0;
 }
 
 .create-post-trigger {
@@ -224,10 +224,17 @@
   overflow-y: auto;
 }
 
+/* Comments panel (TikTok-style right sidebar) */
 .feed-sidebar {
-  position: sticky;
-  top: 88px;
-  height: fit-content;
+  position: fixed;
+  right: 0;
+  top: 72px;
+  bottom: 0;
+  width: 400px;
+  background: white;
+  border-left: 1px solid #e5e5e5;
+  overflow-y: auto;
+  display: none; /* Hidden for now, will add comments later */
 }
 
 .sidebar-card {
@@ -296,7 +303,6 @@
   }
 
   .feed-main {
-    grid-template-columns: 1fr;
     margin-left: 72px;
     width: calc(100% - 72px);
   }
