@@ -6,15 +6,16 @@
 [build.environment]
   NODE_VERSION = "18"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[context.production.environment]
-  REACT_APP_CONTROL_PLANE_URL = "https://your-control-plane-api.com"
-  REACT_APP_REPORTING_URL = "https://your-reporting-api.com"
-
-[context.deploy-preview.environment]
-  REACT_APP_CONTROL_PLANE_URL = "https://staging-control-plane-api.com"
-  REACT_APP_REPORTING_URL = "https://staging-reporting-api.com"

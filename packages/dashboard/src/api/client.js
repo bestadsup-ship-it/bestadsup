@@ -1,54 +1,39 @@
 import axios from 'axios';
 
-// Auto-detect the correct API URL for mobile devices
-const getApiUrl = (port) => {
-  // If environment variable is set, use it
-  if (port === 3002 && process.env.REACT_APP_CONTROL_PLANE_URL) {
+// Auto-detect the correct API URL
+// In production (Netlify), use /.netlify/functions
+// In development, use localhost:3002 for backward compatibility
+const getApiUrl = () => {
+  // If we're on Netlify or production, use Netlify Functions
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return '/.netlify/functions';
+  }
+
+  // Development: check if environment variable is set
+  if (process.env.REACT_APP_CONTROL_PLANE_URL) {
     return process.env.REACT_APP_CONTROL_PLANE_URL;
   }
-  if (port === 3004 && process.env.REACT_APP_REPORTING_URL) {
-    return process.env.REACT_APP_REPORTING_URL;
-  }
 
-  // Use current hostname (works for both localhost and IP access)
+  // Development fallback: use localhost
   const hostname = window.location.hostname;
-  return `http://${hostname}:${port}`;
+  return `http://${hostname}:3002`;
 };
 
-const CONTROL_PLANE_URL = getApiUrl(3002);
-const REPORTING_URL = getApiUrl(3004);
+const API_URL = getApiUrl();
 
 const TOKEN_KEY = 'b2b_ad_platform_token';
 const USER_KEY = 'b2b_ad_platform_user';
 
-// Create axios instances
-const controlPlaneClient = axios.create({
-  baseURL: CONTROL_PLANE_URL,
+// Create axios instance
+const apiClient = axios.create({
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-const reportingClient = axios.create({
-  baseURL: REPORTING_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Request interceptors to add auth token
-controlPlaneClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-reportingClient.interceptors.request.use(
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
@@ -69,12 +54,7 @@ const handleAuthError = (error) => {
   return Promise.reject(error);
 };
 
-controlPlaneClient.interceptors.response.use(
-  (response) => response,
-  handleAuthError
-);
-
-reportingClient.interceptors.response.use(
+apiClient.interceptors.response.use(
   (response) => response,
   handleAuthError
 );
@@ -82,7 +62,7 @@ reportingClient.interceptors.response.use(
 // Auth API
 export const authAPI = {
   login: async (email, password) => {
-    const response = await controlPlaneClient.post('/auth/login', { email, password });
+    const response = await apiClient.post('/auth-login', { email, password });
     if (response.data.token) {
       localStorage.setItem(TOKEN_KEY, response.data.token);
       if (response.data.account) {
@@ -93,7 +73,7 @@ export const authAPI = {
   },
 
   signup: async (email, password, organizationName) => {
-    const response = await controlPlaneClient.post('/auth/signup', {
+    const response = await apiClient.post('/auth-signup', {
       email,
       password,
       name: organizationName,
@@ -122,55 +102,42 @@ export const authAPI = {
   isAuthenticated: () => !!localStorage.getItem(TOKEN_KEY),
 };
 
-// Ad Units API
+// Ad Units API (placeholder for future implementation)
 export const adUnitsAPI = {
   getAll: async () => {
-    const response = await controlPlaneClient.get('/ad-units');
-    return response.data;
+    // TODO: Implement Netlify Function for ad-units
+    return [];
   },
 
   getById: async (id) => {
-    const response = await controlPlaneClient.get(`/ad-units/${id}`);
-    return response.data;
+    return null;
   },
 
   create: async (adUnitData) => {
-    const response = await controlPlaneClient.post('/ad-units', adUnitData);
-    return response.data;
+    return null;
   },
 
   update: async (id, adUnitData) => {
-    const response = await controlPlaneClient.put(`/ad-units/${id}`, adUnitData);
-    return response.data;
+    return null;
   },
 
   delete: async (id) => {
-    const response = await controlPlaneClient.delete(`/ad-units/${id}`);
-    return response.data;
+    return null;
   },
 };
 
-// Analytics/Reporting API
+// Analytics/Reporting API (placeholder for future implementation)
 export const analyticsAPI = {
   getMetrics: async (startDate, endDate, adUnitId = null) => {
-    const params = {
-      start_date: startDate.toISOString().split('T')[0],
-      end_date: endDate.toISOString().split('T')[0],
-    };
-    if (adUnitId) {
-      params.ad_unit_id = adUnitId;
-    }
-    const response = await reportingClient.get('/metrics', { params });
-    return response.data;
+    // TODO: Implement Netlify Function for analytics
+    return { impressions: 0, clicks: 0, revenue: 0 };
   },
 
   getDailyMetrics: async (startDate, endDate, adUnitId = null) => {
-    // For now, return the same as getMetrics since /metrics/daily doesn't exist yet
-    return await analyticsAPI.getMetrics(startDate, endDate, adUnitId);
+    return [];
   },
 
   getAdUnitPerformance: async (startDate, endDate) => {
-    // For now, return empty array since /metrics/ad-units doesn't exist yet
     return [];
   },
 };
@@ -178,36 +145,36 @@ export const analyticsAPI = {
 // Posts API
 export const postsAPI = {
   getAll: async (limit = 50, offset = 0) => {
-    const response = await controlPlaneClient.get('/posts', {
+    const response = await apiClient.get('/posts', {
       params: { limit, offset },
     });
     return response.data;
   },
 
   getMyPosts: async (limit = 50, offset = 0) => {
-    const response = await controlPlaneClient.get('/posts/my-posts', {
+    const response = await apiClient.get('/posts/my-posts', {
       params: { limit, offset },
     });
     return response.data;
   },
 
   create: async (postData) => {
-    const response = await controlPlaneClient.post('/posts', postData);
+    const response = await apiClient.post('/posts', postData);
     return response.data;
   },
 
   like: async (postId) => {
-    const response = await controlPlaneClient.post(`/posts/${postId}/like`);
+    const response = await apiClient.post(`/posts/${postId}/like`);
     return response.data;
   },
 
   unlike: async (postId) => {
-    const response = await controlPlaneClient.delete(`/posts/${postId}/like`);
+    const response = await apiClient.delete(`/posts/${postId}/like`);
     return response.data;
   },
 
   delete: async (postId) => {
-    const response = await controlPlaneClient.delete(`/posts/${postId}`);
+    const response = await apiClient.delete(`/posts/${postId}`);
     return response.data;
   },
 };
