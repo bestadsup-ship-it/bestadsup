@@ -4,8 +4,16 @@ import axios from 'axios';
 // In production (Netlify), use /.netlify/functions
 // In development, use localhost:3002 for backward compatibility
 const getApiUrl = () => {
-  // If we're on Netlify or production, use Netlify Functions
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+  // Check if we're on a Netlify domain or custom domain (production)
+  const hostname = window.location.hostname;
+  const isLocalDev = hostname === 'localhost' ||
+                     hostname === '127.0.0.1' ||
+                     hostname.startsWith('192.168.') ||
+                     hostname.startsWith('10.') ||
+                     hostname.startsWith('172.');
+
+  // Production: Use Netlify Functions
+  if (!isLocalDev) {
     return '/.netlify/functions';
   }
 
@@ -14,9 +22,8 @@ const getApiUrl = () => {
     return process.env.REACT_APP_CONTROL_PLANE_URL;
   }
 
-  // Development fallback: use localhost
-  const hostname = window.location.hostname;
-  return `http://${hostname}:3002`;
+  // Development fallback: use localhost backend
+  return 'http://localhost:3002';
 };
 
 const API_URL = getApiUrl();

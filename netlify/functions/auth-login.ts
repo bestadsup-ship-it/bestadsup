@@ -18,7 +18,10 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    const { email, password } = LoginSchema.parse(JSON.parse(event.body || '{}'));
+    console.log('Login request body:', event.body);
+    const body = JSON.parse(event.body || '{}');
+    console.log('Parsed body:', body);
+    const { email, password } = LoginSchema.parse(body);
     const pool = getPool();
 
     const result = await pool.query(
@@ -65,9 +68,18 @@ export const handler: Handler = async (event) => {
     };
   } catch (error: any) {
     console.error('Login error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    });
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: error.message || 'Login failed' }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        error: error.message || 'Login failed',
+        details: error.errors || undefined
+      }),
     };
   }
 };

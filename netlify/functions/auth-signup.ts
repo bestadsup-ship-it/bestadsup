@@ -19,7 +19,10 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    const { name, email, password } = SignupSchema.parse(JSON.parse(event.body || '{}'));
+    console.log('Signup request body:', event.body);
+    const body = JSON.parse(event.body || '{}');
+    console.log('Parsed body:', body);
+    const { name, email, password } = SignupSchema.parse(body);
     const pool = getPool();
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -46,17 +49,27 @@ export const handler: Handler = async (event) => {
     };
   } catch (error: any) {
     console.error('Signup error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    });
 
     if (error.code === '23505') {
       return {
         statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: 'Email already exists' }),
       };
     }
 
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: error.message || 'Signup failed' }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        error: error.message || 'Signup failed',
+        details: error.errors || undefined
+      }),
     };
   }
 };
