@@ -1,0 +1,88 @@
+.friends-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.friends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.friend-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.friend-avatar-wrapper {
+  position: relative;
+}
+
+.friend-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid white;
+}
+
+.status-indicator.online {
+  background: #7EC850;
+}
+
+.status-indicator.offline {
+  background: #999;
+}
+
+.friend-info {
+  flex: 1;
+}
+
+.friend-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.friend-email {
+  font-size: 14px;
+  color: #666;
+}
+
+.friend-actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.friend-actions .btn-primary,
+.friend-actions .btn-secondary {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .friends-grid {
+    grid-template-columns: 1fr;
+  }
+}

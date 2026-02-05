@@ -1,0 +1,100 @@
+.activity-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.activity-list {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-item:hover {
+  background: #fafafa;
+}
+
+.activity-item.unread {
+  background: #f0fae8;
+}
+
+.activity-icon {
+  font-size: 24px;
+  width: 32px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.activity-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.activity-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-text {
+  font-size: 15px;
+  color: #333;
+  margin: 0 0 4px 0;
+}
+
+.activity-text strong {
+  font-weight: 600;
+}
+
+.activity-preview {
+  font-size: 14px;
+  color: #666;
+  margin: 4px 0;
+  font-style: italic;
+}
+
+.activity-time {
+  font-size: 13px;
+  color: #999;
+}
+
+.unread-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #7EC850;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .activity-item {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .activity-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .activity-icon {
+    display: none;
+  }
+}

@@ -1,0 +1,43 @@
+redirectsOrigin = "config"
+plugins = []
+headers = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "C:\\Users\\percy\\B2BAdSite\\packages\\dashboard\\dist"
+publishOrigin = "config"
+commandOrigin = "config"
+base = "C:\\Users\\percy\\B2BAdSite"
+command = "cd packages/shared && npm install && npm run build && cd ../dashboard && npm install && npm run build"
+
+[build.environment]
+NODE_VERSION = "18"
+REACT_APP_CONTROL_PLANE_URL = "https://your-control-plane-api.com"
+REACT_APP_REPORTING_URL = "https://your-reporting-api.com"
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]

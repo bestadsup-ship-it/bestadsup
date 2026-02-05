@@ -1,7 +1,22 @@
 import axios from 'axios';
 
-const CONTROL_PLANE_URL = process.env.REACT_APP_CONTROL_PLANE_URL || 'http://localhost:3002';
-const REPORTING_URL = process.env.REACT_APP_REPORTING_URL || 'http://localhost:3004';
+// Auto-detect the correct API URL for mobile devices
+const getApiUrl = (port) => {
+  // If environment variable is set, use it
+  if (port === 3002 && process.env.REACT_APP_CONTROL_PLANE_URL) {
+    return process.env.REACT_APP_CONTROL_PLANE_URL;
+  }
+  if (port === 3004 && process.env.REACT_APP_REPORTING_URL) {
+    return process.env.REACT_APP_REPORTING_URL;
+  }
+
+  // Use current hostname (works for both localhost and IP access)
+  const hostname = window.location.hostname;
+  return `http://${hostname}:${port}`;
+};
+
+const CONTROL_PLANE_URL = getApiUrl(3002);
+const REPORTING_URL = getApiUrl(3004);
 
 const TOKEN_KEY = 'b2b_ad_platform_token';
 const USER_KEY = 'b2b_ad_platform_user';
@@ -70,8 +85,8 @@ export const authAPI = {
     const response = await controlPlaneClient.post('/auth/login', { email, password });
     if (response.data.token) {
       localStorage.setItem(TOKEN_KEY, response.data.token);
-      if (response.data.user) {
-        localStorage.setItem(USER_KEY, JSON.stringify(response.data.user));
+      if (response.data.account) {
+        localStorage.setItem(USER_KEY, JSON.stringify(response.data.account));
       }
     }
     return response.data;
@@ -81,12 +96,12 @@ export const authAPI = {
     const response = await controlPlaneClient.post('/auth/signup', {
       email,
       password,
-      organizationName,
+      name: organizationName,
     });
     if (response.data.token) {
       localStorage.setItem(TOKEN_KEY, response.data.token);
-      if (response.data.user) {
-        localStorage.setItem(USER_KEY, JSON.stringify(response.data.user));
+      if (response.data.account) {
+        localStorage.setItem(USER_KEY, JSON.stringify(response.data.account));
       }
     }
     return response.data;
@@ -160,8 +175,46 @@ export const analyticsAPI = {
   },
 };
 
+// Posts API
+export const postsAPI = {
+  getAll: async (limit = 50, offset = 0) => {
+    const response = await controlPlaneClient.get('/posts', {
+      params: { limit, offset },
+    });
+    return response.data;
+  },
+
+  getMyPosts: async (limit = 50, offset = 0) => {
+    const response = await controlPlaneClient.get('/posts/my-posts', {
+      params: { limit, offset },
+    });
+    return response.data;
+  },
+
+  create: async (postData) => {
+    const response = await controlPlaneClient.post('/posts', postData);
+    return response.data;
+  },
+
+  like: async (postId) => {
+    const response = await controlPlaneClient.post(`/posts/${postId}/like`);
+    return response.data;
+  },
+
+  unlike: async (postId) => {
+    const response = await controlPlaneClient.delete(`/posts/${postId}/like`);
+    return response.data;
+  },
+
+  delete: async (postId) => {
+    const response = await controlPlaneClient.delete(`/posts/${postId}`);
+    return response.data;
+  },
+};
+
 export default {
   authAPI,
   adUnitsAPI,
   analyticsAPI,
+  postsAPI,
 };

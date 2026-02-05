@@ -17,9 +17,14 @@ function Login() {
 
     try {
       await authAPI.login(email, password);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      console.error('Login error:', err);
+      const errorMessage = err.response?.data?.message
+        || err.response?.data?.error
+        || err.message
+        || 'Login failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

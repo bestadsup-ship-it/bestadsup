@@ -1,0 +1,95 @@
+.following-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+}
+
+.following-feed {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.suggestions-sidebar {
+  position: sticky;
+  top: 88px;
+  height: fit-content;
+}
+
+.suggestions-sidebar .sidebar-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.suggestions-sidebar h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.suggested-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.suggested-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.suggested-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.suggested-info {
+  flex: 1;
+}
+
+.suggested-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.suggested-followers {
+  font-size: 12px;
+  color: #999;
+}
+
+.btn-follow {
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: 1px solid #7EC850;
+  background: white;
+  color: #7EC850;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-follow:hover {
+  background: #7EC850;
+  color: white;
+}
+
+@media (max-width: 1024px) {
+  .following-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .suggestions-sidebar {
+    display: none;
+  }
+}

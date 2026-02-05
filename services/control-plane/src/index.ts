@@ -10,6 +10,7 @@ import { propertiesRouter } from './routes/properties';
 import { adUnitsRouter } from './routes/ad-units';
 import { campaignsRouter } from './routes/campaigns';
 import { creativesRouter } from './routes/creatives';
+import postsRouter from './routes/posts';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -27,7 +28,8 @@ app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Routes
 app.use('/auth', authRouter);
@@ -36,6 +38,7 @@ app.use('/properties', propertiesRouter);
 app.use('/ad-units', adUnitsRouter);
 app.use('/campaigns', campaignsRouter);
 app.use('/creatives', creativesRouter);
+app.use('/posts', postsRouter);
 
 // Health check
 app.get('/health', async (req, res) => {
@@ -47,6 +50,8 @@ app.get('/health', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Control Plane API running on port ${PORT}`);
+  console.log(`Local: http://localhost:${PORT}`);
+  console.log(`Network: http://192.168.1.168:${PORT}`);
 });

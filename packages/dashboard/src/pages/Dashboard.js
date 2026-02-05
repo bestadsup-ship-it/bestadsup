@@ -113,13 +113,17 @@ function Dashboard() {
             <img
               src="/BestAdsUp.jpg"
               alt="BestAdsUp Logo"
-              style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+              style={{ width: '50px', height: '50px', borderRadius: '50%', cursor: 'pointer' }}
+              onClick={() => navigate('/')}
             />
-            <h1>BestAdsUp</h1>
+            <h1 style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>BestAdsUp</h1>
           </div>
           {user && <p className="user-info">Welcome, {user.email}</p>}
         </div>
         <div className="header-right">
+          <button onClick={() => navigate('/')} className="btn-secondary">
+            ← Back to Feed
+          </button>
           <button onClick={loadData} className="btn-secondary" disabled={loading}>
             {loading ? 'Refreshing...' : 'Refresh'}
           </button>

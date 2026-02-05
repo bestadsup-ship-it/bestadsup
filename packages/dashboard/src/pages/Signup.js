@@ -30,7 +30,7 @@ function Signup() {
 
     try {
       await authAPI.signup(email, password, organizationName);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Signup failed. Please try again.');
     } finally {
