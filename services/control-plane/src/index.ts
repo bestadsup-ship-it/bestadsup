@@ -18,11 +18,12 @@ import savesRouter from './routes/saves';
 import followsRouter from './routes/follows';
 import messagesRouter from './routes/messages';
 import { cartRouter } from './routes/cart';
+import profileRouter from './routes/profile';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = Number(process.env.PORT) || 3002;
 
 // Initialize database
 export const pool = new Pool({
@@ -41,6 +42,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Routes
 app.use('/auth', authRouter);
 app.use('/accounts', accountsRouter);
+app.use('/profile', profileRouter);
 app.use('/properties', propertiesRouter);
 app.use('/ad-units', adUnitsRouter);
 app.use('/campaigns', campaignsRouter);

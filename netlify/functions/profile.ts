@@ -15,6 +15,21 @@ const updateProfileSchema = z.object({
   location: z.string().max(255).optional(),
   linkedinUrl: z.string().url().optional().or(z.literal('')),
   twitterUrl: z.string().url().optional().or(z.literal('')),
+  instagramUrl: z.string().url().optional().or(z.literal('')),
+  portfolioUrl: z.string().url().optional().or(z.literal('')),
+});
+
+const updateCreatorProfileSchema = z.object({
+  tagline: z.string().max(255).optional(),
+  specialties: z.array(z.string()).optional(),
+  industriesServed: z.array(z.string()).optional(),
+  yearsExperience: z.number().int().min(0).max(50).optional(),
+  hourlyRate: z.number().min(0).optional(),
+  currency: z.string().length(3).optional(),
+  availabilityStatus: z.enum(['available', 'busy', 'not_accepting']).optional(),
+  responseTime: z.string().max(50).optional(),
+  certifications: z.array(z.string()).optional(),
+  isAcceptingProjects: z.boolean().optional(),
 });
 
 export const handler: Handler = async (event) => {
@@ -28,29 +43,48 @@ export const handler: Handler = async (event) => {
       try {
         const result = await pool.query(
           `SELECT
-            id,
-            email,
-            name,
-            username,
-            bio,
-            avatar_url,
-            cover_photo_url,
-            company_name,
-            job_title,
-            website_url,
-            location,
-            linkedin_url,
-            twitter_url,
-            is_verified,
-            is_private,
-            email_verified,
-            created_at,
-            updated_at,
-            (SELECT COUNT(*) FROM follows WHERE following_id = accounts.id AND status = 'active') as followers_count,
-            (SELECT COUNT(*) FROM follows WHERE follower_id = accounts.id AND status = 'active') as following_count,
-            (SELECT COUNT(*) FROM posts WHERE account_id = accounts.id) as posts_count
-          FROM accounts
-          WHERE id = $1`,
+            a.id,
+            a.email,
+            a.name,
+            a.bio,
+            a.avatar_url,
+            a.cover_photo_url,
+            a.company_name,
+            a.job_title,
+            a.website_url,
+            a.location,
+            a.linkedin_url,
+            a.twitter_url,
+            a.instagram_url,
+            a.portfolio_url,
+            a.account_type,
+            a.is_verified,
+            a.verification_badge,
+            a.is_private,
+            a.email_verified,
+            a.created_at,
+            a.updated_at,
+            (SELECT COUNT(*) FROM follows WHERE following_id = a.id) as followers_count,
+            (SELECT COUNT(*) FROM follows WHERE follower_id = a.id) as following_count,
+            (SELECT COUNT(*) FROM posts WHERE account_id = a.id) as posts_count,
+            cp.tagline,
+            cp.specialties,
+            cp.industries_served,
+            cp.years_experience,
+            cp.hourly_rate,
+            cp.currency,
+            cp.availability_status,
+            cp.response_time,
+            cp.total_services,
+            cp.total_sales,
+            cp.avg_rating,
+            cp.total_reviews,
+            cp.certifications,
+            cp.is_accepting_projects,
+            cp.profile_views
+          FROM accounts a
+          LEFT JOIN creator_profiles cp ON cp.account_id = a.id
+          WHERE a.id = $1`,
           [accountId]
         );
 
@@ -63,32 +97,59 @@ export const handler: Handler = async (event) => {
 
         const profile = result.rows[0];
 
+        const response: any = {
+          id: profile.id,
+          email: profile.email,
+          name: profile.name,
+          bio: profile.bio,
+          avatar_url: profile.avatar_url,
+          avatarUrl: profile.avatar_url,
+          coverPhotoUrl: profile.cover_photo_url,
+          companyName: profile.company_name,
+          jobTitle: profile.job_title,
+          websiteUrl: profile.website_url,
+          location: profile.location,
+          linkedinUrl: profile.linkedin_url,
+          twitterUrl: profile.twitter_url,
+          instagramUrl: profile.instagram_url,
+          portfolioUrl: profile.portfolio_url,
+          accountType: profile.account_type,
+          isVerified: profile.is_verified,
+          verificationBadge: profile.verification_badge,
+          isPrivate: profile.is_private,
+          emailVerified: profile.email_verified,
+          followersCount: parseInt(profile.followers_count) || 0,
+          followingCount: parseInt(profile.following_count) || 0,
+          postsCount: parseInt(profile.posts_count) || 0,
+          createdAt: profile.created_at,
+          updatedAt: profile.updated_at,
+        };
+
+        // Add creator-specific data if applicable
+        if (profile.account_type === 'creator' || profile.account_type === 'hybrid') {
+          response.creatorProfile = {
+            tagline: profile.tagline,
+            specialties: profile.specialties || [],
+            industriesServed: profile.industries_served || [],
+            yearsExperience: profile.years_experience,
+            hourlyRate: profile.hourly_rate,
+            currency: profile.currency || 'USD',
+            availabilityStatus: profile.availability_status || 'available',
+            responseTime: profile.response_time,
+            totalServices: profile.total_services || 0,
+            totalSales: profile.total_sales || 0,
+            avgRating: parseFloat(profile.avg_rating) || 0,
+            totalReviews: profile.total_reviews || 0,
+            certifications: profile.certifications || [],
+            isAcceptingProjects: profile.is_accepting_projects !== false,
+            profileViews: profile.profile_views || 0,
+          };
+        }
+
         return {
           statusCode: 200,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: profile.id,
-            email: profile.email,
-            name: profile.name,
-            username: profile.username,
-            bio: profile.bio,
-            avatarUrl: profile.avatar_url,
-            coverPhotoUrl: profile.cover_photo_url,
-            companyName: profile.company_name,
-            jobTitle: profile.job_title,
-            websiteUrl: profile.website_url,
-            location: profile.location,
-            linkedinUrl: profile.linkedin_url,
-            twitterUrl: profile.twitter_url,
-            isVerified: profile.is_verified,
-            isPrivate: profile.is_private,
-            emailVerified: profile.email_verified,
-            followersCount: parseInt(profile.followers_count),
-            followingCount: parseInt(profile.following_count),
-            postsCount: parseInt(profile.posts_count),
-            createdAt: profile.created_at,
-            updatedAt: profile.updated_at,
-          }),
+          body: JSON.stringify(response),
         };
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -313,6 +374,140 @@ export const handler: Handler = async (event) => {
         return {
           statusCode: 500,
           body: JSON.stringify({ message: 'Failed to update profile' }),
+        };
+      }
+    })(event);
+  }
+
+  // PATCH /profile/creator - Update creator-specific profile fields
+  if (event.httpMethod === 'PATCH' && segments[0] === 'creator') {
+    return withAuth(async (event, { accountId }) => {
+      try {
+        // Check if user is a creator
+        const accountCheck = await pool.query(
+          'SELECT account_type FROM accounts WHERE id = $1',
+          [accountId]
+        );
+
+        if (accountCheck.rows.length === 0) {
+          return {
+            statusCode: 404,
+            body: JSON.stringify({ message: 'Account not found' }),
+          };
+        }
+
+        const accountType = accountCheck.rows[0].account_type;
+        if (accountType !== 'creator' && accountType !== 'hybrid') {
+          return {
+            statusCode: 403,
+            body: JSON.stringify({ message: 'Only creators can update creator profile' }),
+          };
+        }
+
+        const data = updateCreatorProfileSchema.parse(JSON.parse(event.body || '{}'));
+
+        // Build dynamic update query
+        const updates: string[] = [];
+        const values: any[] = [];
+        let paramCount = 1;
+
+        if (data.tagline !== undefined) {
+          updates.push(`tagline = $${paramCount++}`);
+          values.push(data.tagline);
+        }
+        if (data.specialties !== undefined) {
+          updates.push(`specialties = $${paramCount++}`);
+          values.push(data.specialties);
+        }
+        if (data.industriesServed !== undefined) {
+          updates.push(`industries_served = $${paramCount++}`);
+          values.push(data.industriesServed);
+        }
+        if (data.yearsExperience !== undefined) {
+          updates.push(`years_experience = $${paramCount++}`);
+          values.push(data.yearsExperience);
+        }
+        if (data.hourlyRate !== undefined) {
+          updates.push(`hourly_rate = $${paramCount++}`);
+          values.push(data.hourlyRate);
+        }
+        if (data.currency !== undefined) {
+          updates.push(`currency = $${paramCount++}`);
+          values.push(data.currency);
+        }
+        if (data.availabilityStatus !== undefined) {
+          updates.push(`availability_status = $${paramCount++}`);
+          values.push(data.availabilityStatus);
+        }
+        if (data.responseTime !== undefined) {
+          updates.push(`response_time = $${paramCount++}`);
+          values.push(data.responseTime);
+        }
+        if (data.certifications !== undefined) {
+          updates.push(`certifications = $${paramCount++}`);
+          values.push(data.certifications);
+        }
+        if (data.isAcceptingProjects !== undefined) {
+          updates.push(`is_accepting_projects = $${paramCount++}`);
+          values.push(data.isAcceptingProjects);
+        }
+
+        if (updates.length === 0) {
+          return {
+            statusCode: 400,
+            body: JSON.stringify({ message: 'No fields to update' }),
+          };
+        }
+
+        updates.push(`updated_at = NOW()`);
+        values.push(accountId);
+
+        const query = `
+          UPDATE creator_profiles
+          SET ${updates.join(', ')}
+          WHERE account_id = $${paramCount}
+          RETURNING *
+        `;
+
+        const result = await pool.query(query, values);
+
+        if (result.rows.length === 0) {
+          return {
+            statusCode: 404,
+            body: JSON.stringify({ message: 'Creator profile not found' }),
+          };
+        }
+
+        const profile = result.rows[0];
+
+        return {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tagline: profile.tagline,
+            specialties: profile.specialties || [],
+            industriesServed: profile.industries_served || [],
+            yearsExperience: profile.years_experience,
+            hourlyRate: profile.hourly_rate,
+            currency: profile.currency,
+            availabilityStatus: profile.availability_status,
+            responseTime: profile.response_time,
+            certifications: profile.certifications || [],
+            isAcceptingProjects: profile.is_accepting_projects,
+            updatedAt: profile.updated_at,
+          }),
+        };
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return {
+            statusCode: 400,
+            body: JSON.stringify({ message: 'Invalid creator profile data', errors: error.errors }),
+          };
+        }
+        console.error('Error updating creator profile:', error);
+        return {
+          statusCode: 500,
+          body: JSON.stringify({ message: 'Failed to update creator profile' }),
         };
       }
     })(event);

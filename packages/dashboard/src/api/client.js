@@ -317,7 +317,7 @@ export const savesAPI = {
 // Profile API
 export const profileAPI = {
   getMyProfile: async () => {
-    const response = await apiClient.get('/accounts/me');
+    const response = await apiClient.get('/profile');
     return response.data;
   },
 
@@ -327,7 +327,12 @@ export const profileAPI = {
   },
 
   updateProfile: async (profileData) => {
-    const response = await apiClient.patch('/accounts/me', profileData);
+    const response = await apiClient.patch('/profile', profileData);
+    return response.data;
+  },
+
+  updateCreatorProfile: async (creatorData) => {
+    const response = await apiClient.patch('/profile/creator', creatorData);
     return response.data;
   },
 };

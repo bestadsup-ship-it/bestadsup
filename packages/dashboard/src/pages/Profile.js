@@ -21,8 +21,19 @@ function Profile() {
     bio: '',
     avatarUrl: '',
   });
+  const [creatorForm, setCreatorForm] = useState({
+    tagline: '',
+    specialties: [],
+    industriesServed: [],
+    yearsExperience: 0,
+    hourlyRate: 0,
+    availabilityStatus: 'available',
+    responseTime: '',
+    certifications: [],
+  });
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [showCreatorModal, setShowCreatorModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -116,6 +127,43 @@ function Profile() {
     }
   };
 
+  const handleEditCreatorProfile = async () => {
+    try {
+      const profile = await profileAPI.getMyProfile();
+      if (profile.creatorProfile) {
+        setCreatorForm({
+          tagline: profile.creatorProfile.tagline || '',
+          specialties: profile.creatorProfile.specialties || [],
+          industriesServed: profile.creatorProfile.industriesServed || [],
+          yearsExperience: profile.creatorProfile.yearsExperience || 0,
+          hourlyRate: profile.creatorProfile.hourlyRate || 0,
+          availabilityStatus: profile.creatorProfile.availabilityStatus || 'available',
+          responseTime: profile.creatorProfile.responseTime || '',
+          certifications: profile.creatorProfile.certifications || [],
+        });
+      }
+      setShowCreatorModal(true);
+    } catch (err) {
+      console.error('Error loading creator profile:', err);
+    }
+  };
+
+  const handleSaveCreatorProfile = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      await profileAPI.updateCreatorProfile(creatorForm);
+      await loadData(); // Reload profile data
+      setShowCreatorModal(false);
+    } catch (err) {
+      console.error('Error saving creator profile:', err);
+      alert('Failed to save creator profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -169,17 +217,66 @@ function Profile() {
         <div className="profile-header">
           <div className="profile-cover"></div>
           <div className="profile-info">
-            <img
-              src={profile?.avatar_url || '/BestAdsUp.jpg'}
-              alt="Profile"
-              className="profile-avatar"
-            />
+            <div className="profile-avatar-wrapper">
+              <img
+                src={profile?.avatar_url || '/BestAdsUp.jpg'}
+                alt="Profile"
+                className="profile-avatar"
+              />
+              {profile?.isVerified && (
+                <span className="verification-badge" title="Verified Creator">✓</span>
+              )}
+            </div>
             <div className="profile-details">
-              <h1 className="profile-name">{profile?.name || profile?.email || 'User'}</h1>
-              <p className="profile-handle">@{profile?.username || profile?.email?.split('@')[0] || 'user'}</p>
+              <div className="profile-name-row">
+                <h1 className="profile-name">{profile?.name || profile?.email || 'User'}</h1>
+                {profile?.accountType && (
+                  <span className={`account-type-badge ${profile.accountType}`}>
+                    {profile.accountType === 'creator' && '🎨 Creator'}
+                    {profile.accountType === 'buyer' && '🛍️ Buyer'}
+                    {profile.accountType === 'hybrid' && '⚡ Creator + Buyer'}
+                  </span>
+                )}
+              </div>
+
+              {profile?.creatorProfile?.tagline && (
+                <p className="profile-tagline">{profile.creatorProfile.tagline}</p>
+              )}
+
               <p className="profile-bio">
                 {profile?.bio || 'B2B Marketing Professional | Growing brands through strategic advertising'}
               </p>
+
+              {profile?.creatorProfile && (
+                <div className="creator-highlights">
+                  {profile.creatorProfile.specialties?.length > 0 && (
+                    <div className="specialties">
+                      {profile.creatorProfile.specialties.slice(0, 3).map((specialty, i) => (
+                        <span key={i} className="specialty-tag">{specialty}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="creator-quick-stats">
+                    {profile.creatorProfile.avgRating > 0 && (
+                      <span className="quick-stat">
+                        ⭐ {profile.creatorProfile.avgRating.toFixed(1)} ({profile.creatorProfile.totalReviews} reviews)
+                      </span>
+                    )}
+                    {profile.creatorProfile.totalSales > 0 && (
+                      <span className="quick-stat">
+                        📦 {profile.creatorProfile.totalSales} sales
+                      </span>
+                    )}
+                    {profile.creatorProfile.responseTime && (
+                      <span className="quick-stat">
+                        ⚡ {profile.creatorProfile.responseTime}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="profile-stats">
                 <div className="stat">
                   <strong>{followingCount}</strong>
@@ -193,9 +290,22 @@ function Profile() {
                   <strong>{posts.length}</strong>
                   <span>Posts</span>
                 </div>
+                {profile?.creatorProfile?.totalServices > 0 && (
+                  <div className="stat">
+                    <strong>{profile.creatorProfile.totalServices}</strong>
+                    <span>Services</span>
+                  </div>
+                )}
               </div>
             </div>
-            <button className="btn-primary edit-profile-btn" onClick={handleEditProfile}>Edit Profile</button>
+            <div className="profile-actions">
+              <button className="btn-primary edit-profile-btn" onClick={handleEditProfile}>Edit Profile</button>
+              {(profile?.accountType === 'creator' || profile?.accountType === 'hybrid') && (
+                <button className="btn-secondary edit-profile-btn" onClick={handleEditCreatorProfile}>
+                  Edit Creator Info
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -329,6 +439,133 @@ function Profile() {
           )}
         </div>
       </main>
+
+      {showCreatorModal && (
+        <div className="modal-overlay" onClick={() => setShowCreatorModal(false)}>
+          <div className="modal-content creator-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Creator Profile</h2>
+              <button className="modal-close" onClick={() => setShowCreatorModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSaveCreatorProfile} className="edit-profile-form">
+              <div className="form-group">
+                <label htmlFor="tagline">Professional Tagline</label>
+                <input
+                  type="text"
+                  id="tagline"
+                  value={creatorForm.tagline}
+                  onChange={(e) => setCreatorForm({ ...creatorForm, tagline: e.target.value })}
+                  placeholder="e.g., B2B SaaS Marketing Specialist | 50+ Campaigns Launched"
+                  maxLength="255"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="specialties">Specialties (comma-separated)</label>
+                <input
+                  type="text"
+                  id="specialties"
+                  value={creatorForm.specialties.join(', ')}
+                  onChange={(e) => setCreatorForm({
+                    ...creatorForm,
+                    specialties: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                  })}
+                  placeholder="Content Marketing, Paid Ads, SEO"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="industries">Industries Served (comma-separated)</label>
+                <input
+                  type="text"
+                  id="industries"
+                  value={creatorForm.industriesServed.join(', ')}
+                  onChange={(e) => setCreatorForm({
+                    ...creatorForm,
+                    industriesServed: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                  })}
+                  placeholder="SaaS, FinTech, Healthcare"
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="yearsExperience">Years of Experience</label>
+                  <input
+                    type="number"
+                    id="yearsExperience"
+                    value={creatorForm.yearsExperience}
+                    onChange={(e) => setCreatorForm({ ...creatorForm, yearsExperience: parseInt(e.target.value) || 0 })}
+                    min="0"
+                    max="50"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="hourlyRate">Hourly Rate ($)</label>
+                  <input
+                    type="number"
+                    id="hourlyRate"
+                    value={creatorForm.hourlyRate}
+                    onChange={(e) => setCreatorForm({ ...creatorForm, hourlyRate: parseFloat(e.target.value) || 0 })}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="availability">Availability Status</label>
+                  <select
+                    id="availability"
+                    value={creatorForm.availabilityStatus}
+                    onChange={(e) => setCreatorForm({ ...creatorForm, availabilityStatus: e.target.value })}
+                  >
+                    <option value="available">Available</option>
+                    <option value="busy">Busy</option>
+                    <option value="not_accepting">Not Accepting Projects</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="responseTime">Response Time</label>
+                  <input
+                    type="text"
+                    id="responseTime"
+                    value={creatorForm.responseTime}
+                    onChange={(e) => setCreatorForm({ ...creatorForm, responseTime: e.target.value })}
+                    placeholder="e.g., within 24 hours"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="certifications">Certifications (comma-separated)</label>
+                <input
+                  type="text"
+                  id="certifications"
+                  value={creatorForm.certifications.join(', ')}
+                  onChange={(e) => setCreatorForm({
+                    ...creatorForm,
+                    certifications: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                  })}
+                  placeholder="Google Ads Certified, HubSpot Inbound"
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowCreatorModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary" disabled={saving}>
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {showEditModal && (
         <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
