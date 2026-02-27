@@ -8,6 +8,7 @@ const SignupSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  account_type: z.enum(['creator', 'buyer', 'hybrid']).default('creator'),
 });
 
 // Validate JWT_SECRET exists
@@ -37,7 +38,7 @@ export const handler: Handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    const { name, email, password } = SignupSchema.parse(body);
+    const { name, email, password, account_type } = SignupSchema.parse(body);
 
     // Normalize email
     const normalizedEmail = email.toLowerCase().trim();
@@ -48,10 +49,10 @@ export const handler: Handler = async (event) => {
     const passwordHash = await bcrypt.hash(password, 12);
 
     const result = await pool.query(
-      `INSERT INTO accounts (name, email, password_hash, failed_login_attempts, created_at)
-       VALUES ($1, $2, $3, 0, NOW())
-       RETURNING id, name, email, username`,
-      [name.trim(), normalizedEmail, passwordHash]
+      `INSERT INTO accounts (name, email, password_hash, account_type, failed_login_attempts, created_at)
+       VALUES ($1, $2, $3, $4, 0, NOW())
+       RETURNING id, name, email, username, account_type`,
+      [name.trim(), normalizedEmail, passwordHash, account_type]
     );
 
     const account = result.rows[0];
@@ -71,6 +72,7 @@ export const handler: Handler = async (event) => {
           name: account.name,
           email: account.email,
           username: account.username,
+          account_type: account.account_type,
         },
         token
       }),
