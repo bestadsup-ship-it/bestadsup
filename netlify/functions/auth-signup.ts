@@ -51,7 +51,7 @@ export const handler: Handler = async (event) => {
     const result = await pool.query(
       `INSERT INTO accounts (name, email, password_hash, account_type, failed_login_attempts, created_at)
        VALUES ($1, $2, $3, $4, 0, NOW())
-       RETURNING id, name, email, username, account_type`,
+       RETURNING id, name, email, account_type`,
       [name.trim(), normalizedEmail, passwordHash, account_type]
     );
 
@@ -71,7 +71,6 @@ export const handler: Handler = async (event) => {
           id: account.id,
           name: account.name,
           email: account.email,
-          username: account.username,
           account_type: account.account_type,
         },
         token
