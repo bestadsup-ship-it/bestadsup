@@ -1,4 +1,11 @@
+.post-card-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
 .post-card {
+  flex: 1;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -82,13 +89,54 @@
 }
 
 .post-actions-sidebar {
-  position: absolute;
-  right: 12px;
-  bottom: 60px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  z-index: 10;
+  padding-bottom: 80px;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.action-avatar-container {
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.action-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid white;
+  display: block;
+}
+
+.follow-btn-circle {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fe2c55;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.action-avatar-bottom {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid white;
+  margin-top: 4px;
 }
 
 .action-btn-circle {
@@ -96,17 +144,20 @@
   backdrop-filter: blur(4px);
   border: none;
   width: 50px;
+  min-width: 50px;
   height: 50px;
+  min-height: 50px;
   border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 0;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  padding: 4px;
+  padding: 2px;
+  position: relative;
 }
 
 .action-btn-circle:hover {
@@ -117,6 +168,45 @@
 
 .action-btn-circle.liked {
   background: rgba(254, 44, 85, 0.9);
+}
+
+/* Follow action button styling */
+.action-btn-circle.follow-action {
+  padding: 0;
+  overflow: hidden;
+}
+
+.action-btn-circle.follow-action .action-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.action-btn-circle.follow-action .follow-plus-icon {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fe2c55;
+  color: white;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.action-btn-circle.follow-action.following {
+  opacity: 0.7;
+}
+
+.action-btn-circle.follow-action.following:hover {
+  opacity: 1;
 }
 
 .action-btn-circle .action-icon {

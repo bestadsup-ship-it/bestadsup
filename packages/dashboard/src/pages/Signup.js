@@ -8,6 +8,7 @@ function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [organizationName, setOrganizationName] = useState('');
+  const [accountType, setAccountType] = useState('creator'); // New: account type
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ function Signup() {
     setLoading(true);
 
     try {
-      await authAPI.signup(email, password, organizationName);
+      await authAPI.signup(email, password, organizationName, accountType);
       navigate('/');
     } catch (err) {
       console.error('Signup error:', err);
@@ -65,11 +66,42 @@ function Signup() {
           />
           <h1>BestAdsUp</h1>
           <h2>Create Account</h2>
+          <p style={{ color: '#666', fontSize: '0.9rem', margin: '0.5rem 0 0 0' }}>
+            Join the B2B creator marketplace
+          </p>
         </div>
 
         {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label>Account Type</label>
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+              <label style={{ flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '0.75rem', border: `2px solid ${accountType === 'creator' ? '#4a90e2' : '#ddd'}`, borderRadius: '6px', background: accountType === 'creator' ? '#f0f7ff' : 'transparent' }}>
+                <input
+                  type="radio"
+                  name="accountType"
+                  value="creator"
+                  checked={accountType === 'creator'}
+                  onChange={(e) => setAccountType(e.target.value)}
+                  style={{ marginRight: '0.5rem' }}
+                />
+                <span style={{ fontWeight: '500' }}>💼 Creator</span>
+              </label>
+              <label style={{ flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '0.75rem', border: `2px solid ${accountType === 'buyer' ? '#4a90e2' : '#ddd'}`, borderRadius: '6px', background: accountType === 'buyer' ? '#f0f7ff' : 'transparent' }}>
+                <input
+                  type="radio"
+                  name="accountType"
+                  value="buyer"
+                  checked={accountType === 'buyer'}
+                  onChange={(e) => setAccountType(e.target.value)}
+                  style={{ marginRight: '0.5rem' }}
+                />
+                <span style={{ fontWeight: '500' }}>🏢 Buyer</span>
+              </label>
+            </div>
+          </div>
+
           <div className="form-group">
             <label htmlFor="organizationName">Organization Name</label>
             <input

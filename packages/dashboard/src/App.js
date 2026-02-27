@@ -5,6 +5,8 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Feed from './pages/Feed';
 import Shop from './pages/Shop';
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
 import Explore from './pages/Explore';
 import Following from './pages/Following';
 import Friends from './pages/Friends';
@@ -13,6 +15,7 @@ import Messages from './pages/Messages';
 import Activity from './pages/Activity';
 import Upload from './pages/Upload';
 import Profile from './pages/Profile';
+import Admin from './pages/Admin';
 import { authAPI } from './api/client';
 
 const PrivateRoute = ({ children }) => {
@@ -64,6 +67,22 @@ function App() {
           element={
             <PrivateRoute>
               <Shop />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <PrivateRoute>
+              <Cart />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <PrivateRoute>
+              <Checkout />
             </PrivateRoute>
           }
         />
@@ -128,6 +147,14 @@ function App() {
           element={
             <PrivateRoute>
               <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute>
+              <Admin />
             </PrivateRoute>
           }
         />

@@ -33,15 +33,23 @@ export const handler: Handler = async (event) => {
             p.is_promoted,
             p.views,
             p.clicks,
-            p.likes,
+            p.likes_count,
+            p.comments_count,
+            p.saves_count,
             p.created_at,
+            a.id as author_id,
             a.email as author_email,
-            a.name as author_name
+            a.name as author_name,
+            a.username as author_username,
+            a.avatar_url as author_avatar,
+            EXISTS(SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.account_id = $3) as is_liked,
+            EXISTS(SELECT 1 FROM saves s WHERE s.post_id = p.id AND s.account_id = $3) as is_saved,
+            EXISTS(SELECT 1 FROM follows f WHERE f.follower_id = $3 AND f.following_id = p.account_id AND f.status = 'active') as is_following_author
           FROM posts p
           JOIN accounts a ON p.account_id = a.id
           ORDER BY p.created_at DESC
           LIMIT $1 OFFSET $2`,
-          [limit, offset]
+          [limit, offset, accountId]
         );
 
         const posts = result.rows.map(row => ({
@@ -52,12 +60,19 @@ export const handler: Handler = async (event) => {
           isPromoted: row.is_promoted,
           impressions: row.views || 0,
           clicks: row.clicks || 0,
-          likes: row.likes || 0,
+          likes: row.likes_count || 0,
+          commentsCount: row.comments_count || 0,
+          savesCount: row.saves_count || 0,
+          isLiked: row.is_liked,
+          isSaved: row.is_saved,
+          isFollowingAuthor: row.is_following_author,
           createdAt: row.created_at,
           author: {
-            name: row.author_name || row.author_email,
+            id: row.author_id,
+            name: row.author_name || row.author_username || row.author_email,
+            username: row.author_username,
             email: row.author_email,
-            avatar: '/BestAdsUp.jpg',
+            avatar: row.author_avatar || '/BestAdsUp.jpg',
           },
         }));
 
@@ -92,10 +107,11 @@ export const handler: Handler = async (event) => {
             p.is_promoted,
             p.views,
             p.clicks,
-            p.likes,
+            p.likes_count,
             p.created_at,
             a.email as author_email,
-            a.name as author_name
+            a.name as author_name,
+            EXISTS(SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.account_id = $1) as is_liked
           FROM posts p
           JOIN accounts a ON p.account_id = a.id
           WHERE p.account_id = $1
@@ -112,7 +128,8 @@ export const handler: Handler = async (event) => {
           isPromoted: row.is_promoted,
           impressions: row.views || 0,
           clicks: row.clicks || 0,
-          likes: row.likes || 0,
+          likes: row.likes_count || 0,
+          isLiked: row.is_liked,
           createdAt: row.created_at,
           author: {
             name: row.author_name || row.author_email,
@@ -131,6 +148,82 @@ export const handler: Handler = async (event) => {
         return {
           statusCode: 500,
           body: JSON.stringify({ message: 'Failed to fetch posts' }),
+        };
+      }
+    })(event);
+  }
+
+  // GET /posts/liked - Get posts liked by current user
+  if (event.httpMethod === 'GET' && segments[0] === 'liked') {
+    return withAuth(async (event, { accountId }) => {
+      try {
+        const limit = event.queryStringParameters?.limit || '50';
+        const offset = event.queryStringParameters?.offset || '0';
+
+        const result = await pool.query(
+          `SELECT
+            p.id,
+            p.content,
+            p.image_url,
+            p.video_url,
+            p.is_promoted,
+            p.views,
+            p.clicks,
+            p.likes_count,
+            p.comments_count,
+            p.saves_count,
+            p.created_at,
+            a.id as author_id,
+            a.email as author_email,
+            a.name as author_name,
+            a.username as author_username,
+            a.avatar_url as author_avatar,
+            TRUE as is_liked,
+            EXISTS(SELECT 1 FROM saves s WHERE s.post_id = p.id AND s.account_id = $1) as is_saved,
+            EXISTS(SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = p.account_id AND f.status = 'active') as is_following_author
+          FROM posts p
+          JOIN accounts a ON p.account_id = a.id
+          JOIN likes l ON p.id = l.post_id
+          WHERE l.account_id = $1
+          ORDER BY l.created_at DESC
+          LIMIT $2 OFFSET $3`,
+          [accountId, limit, offset]
+        );
+
+        const posts = result.rows.map(row => ({
+          id: row.id,
+          content: row.content,
+          imageUrl: row.image_url,
+          videoUrl: row.video_url,
+          isPromoted: row.is_promoted,
+          views: row.views,
+          clicks: row.clicks,
+          likesCount: row.likes_count,
+          commentsCount: row.comments_count,
+          savesCount: row.saves_count,
+          createdAt: row.created_at,
+          isLiked: row.is_liked,
+          isSaved: row.is_saved,
+          author: {
+            id: row.author_id,
+            email: row.author_email,
+            name: row.author_name || row.author_username || row.author_email,
+            username: row.author_username,
+            avatar: row.author_avatar || '/BestAdsUp.jpg',
+          },
+          isFollowingAuthor: row.is_following_author,
+        }));
+
+        return {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(posts),
+        };
+      } catch (error) {
+        console.error('Error fetching liked posts:', error);
+        return {
+          statusCode: 500,
+          body: JSON.stringify({ message: 'Failed to fetch liked posts' }),
         };
       }
     })(event);
@@ -161,7 +254,7 @@ export const handler: Handler = async (event) => {
             is_promoted,
             views,
             clicks,
-            likes,
+            likes_count,
             created_at`,
           [
             accountId,
@@ -193,6 +286,7 @@ export const handler: Handler = async (event) => {
             impressions: 0,
             clicks: 0,
             likes: 0,
+            isLiked: false,
             createdAt: post.created_at,
             author: {
               name: account.name || account.email,
@@ -222,12 +316,26 @@ export const handler: Handler = async (event) => {
     return withAuth(async (event, { accountId }) => {
       try {
         const postId = segments[0];
-        await pool.query('UPDATE posts SET likes = likes + 1 WHERE id = $1', [postId]);
+
+        // Insert into likes table (ON CONFLICT DO NOTHING prevents duplicate likes)
+        await pool.query(
+          'INSERT INTO likes (account_id, post_id) VALUES ($1, $2) ON CONFLICT (account_id, post_id) DO NOTHING',
+          [accountId, postId]
+        );
+
+        // Get updated like count
+        const result = await pool.query(
+          'SELECT likes_count FROM posts WHERE id = $1',
+          [postId]
+        );
 
         return {
           statusCode: 200,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: 'Post liked' }),
+          body: JSON.stringify({
+            message: 'Post liked',
+            likes: result.rows[0]?.likes_count || 0
+          }),
         };
       } catch (error) {
         console.error('Error liking post:', error);
@@ -244,18 +352,232 @@ export const handler: Handler = async (event) => {
     return withAuth(async (event, { accountId }) => {
       try {
         const postId = segments[0];
-        await pool.query('UPDATE posts SET likes = GREATEST(likes - 1, 0) WHERE id = $1', [postId]);
+
+        // Delete from likes table
+        await pool.query(
+          'DELETE FROM likes WHERE account_id = $1 AND post_id = $2',
+          [accountId, postId]
+        );
+
+        // Get updated like count
+        const result = await pool.query(
+          'SELECT likes_count FROM posts WHERE id = $1',
+          [postId]
+        );
 
         return {
           statusCode: 200,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: 'Post unliked' }),
+          body: JSON.stringify({
+            message: 'Post unliked',
+            likes: result.rows[0]?.likes_count || 0
+          }),
         };
       } catch (error) {
         console.error('Error unliking post:', error);
         return {
           statusCode: 500,
           body: JSON.stringify({ message: 'Failed to unlike post' }),
+        };
+      }
+    })(event);
+  }
+
+  // GET /posts/following - Get posts from accounts user follows
+  if (event.httpMethod === 'GET' && segments[0] === 'following') {
+    return withAuth(async (event, { accountId }) => {
+      try {
+        const limit = event.queryStringParameters?.limit || '50';
+        const offset = event.queryStringParameters?.offset || '0';
+
+        const result = await pool.query(
+          `SELECT
+            p.id,
+            p.content,
+            p.image_url,
+            p.video_url,
+            p.is_promoted,
+            p.views,
+            p.clicks,
+            p.likes_count,
+            p.comments_count,
+            p.saves_count,
+            p.created_at,
+            a.id as author_id,
+            a.email as author_email,
+            a.name as author_name,
+            a.username as author_username,
+            a.avatar_url as author_avatar,
+            EXISTS(SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.account_id = $1) as is_liked,
+            EXISTS(SELECT 1 FROM saves s WHERE s.post_id = p.id AND s.account_id = $1) as is_saved,
+            TRUE as is_following_author
+          FROM posts p
+          JOIN accounts a ON p.account_id = a.id
+          WHERE EXISTS (
+            SELECT 1 FROM follows f
+            WHERE f.follower_id = $1
+            AND f.following_id = p.account_id
+            AND f.status = 'active'
+          )
+          ORDER BY p.created_at DESC
+          LIMIT $2 OFFSET $3`,
+          [accountId, limit, offset]
+        );
+
+        const posts = result.rows.map(row => ({
+          id: row.id,
+          content: row.content,
+          image: row.image_url,
+          video: row.video_url,
+          isPromoted: row.is_promoted,
+          impressions: row.views || 0,
+          clicks: row.clicks || 0,
+          likes: row.likes_count || 0,
+          commentsCount: row.comments_count || 0,
+          savesCount: row.saves_count || 0,
+          isLiked: row.is_liked,
+          isSaved: row.is_saved,
+          isFollowingAuthor: row.is_following_author,
+          createdAt: row.created_at,
+          author: {
+            id: row.author_id,
+            name: row.author_name || row.author_username || row.author_email,
+            username: row.author_username,
+            email: row.author_email,
+            avatar: row.author_avatar || '/BestAdsUp.jpg',
+          },
+        }));
+
+        return {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(posts),
+        };
+      } catch (error) {
+        console.error('Error fetching following posts:', error);
+        return {
+          statusCode: 500,
+          body: JSON.stringify({ message: 'Failed to fetch following posts' }),
+        };
+      }
+    })(event);
+  }
+
+  // GET /posts/explore - Get posts for explore page with filtering
+  if (event.httpMethod === 'GET' && segments[0] === 'explore') {
+    return withAuth(async (event, { accountId }) => {
+      try {
+        const filter = event.queryStringParameters?.filter || 'trending';
+        const limit = event.queryStringParameters?.limit || '50';
+        const offset = event.queryStringParameters?.offset || '0';
+
+        let query = '';
+        let queryParams: any[] = [];
+
+        // Base SELECT with all fields
+        const baseSelect = `
+          SELECT
+            p.id,
+            p.content,
+            p.image_url,
+            p.video_url,
+            p.is_promoted,
+            p.views,
+            p.clicks,
+            p.likes_count,
+            p.comments_count,
+            p.saves_count,
+            p.created_at,
+            a.id as author_id,
+            a.email as author_email,
+            a.name as author_name,
+            a.username as author_username,
+            a.avatar_url as author_avatar,
+            EXISTS(SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.account_id = $1) as is_liked,
+            EXISTS(SELECT 1 FROM saves s WHERE s.post_id = p.id AND s.account_id = $1) as is_saved,
+            EXISTS(SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = p.account_id AND f.status = 'active') as is_following_author
+          FROM posts p
+          JOIN accounts a ON p.account_id = a.id
+        `;
+
+        switch (filter) {
+          case 'trending':
+            // Trending: High engagement in last 48 hours
+            query = `${baseSelect}
+              WHERE p.created_at >= NOW() - INTERVAL '48 hours'
+              ORDER BY (p.likes_count + p.comments_count * 2 + p.saves_count) DESC, p.created_at DESC
+              LIMIT $2 OFFSET $3`;
+            queryParams = [accountId, limit, offset];
+            break;
+
+          case 'popular':
+            // Popular: Most likes and engagement all-time
+            query = `${baseSelect}
+              ORDER BY (p.likes_count + p.comments_count * 2 + p.saves_count) DESC, p.created_at DESC
+              LIMIT $2 OFFSET $3`;
+            queryParams = [accountId, limit, offset];
+            break;
+
+          case 'recent':
+            // Recent: Most recent posts
+            query = `${baseSelect}
+              ORDER BY p.created_at DESC
+              LIMIT $2 OFFSET $3`;
+            queryParams = [accountId, limit, offset];
+            break;
+
+          case 'promoted':
+            // Promoted: Only promoted posts
+            query = `${baseSelect}
+              WHERE p.is_promoted = TRUE
+              ORDER BY p.created_at DESC
+              LIMIT $2 OFFSET $3`;
+            queryParams = [accountId, limit, offset];
+            break;
+
+          default:
+            query = `${baseSelect}
+              ORDER BY p.created_at DESC
+              LIMIT $2 OFFSET $3`;
+            queryParams = [accountId, limit, offset];
+        }
+
+        const result = await pool.query(query, queryParams);
+
+        const posts = result.rows.map(row => ({
+          id: row.id,
+          content: row.content,
+          image: row.image_url,
+          video: row.video_url,
+          isPromoted: row.is_promoted,
+          impressions: row.views || 0,
+          clicks: row.clicks || 0,
+          likes: row.likes_count || 0,
+          commentsCount: row.comments_count || 0,
+          savesCount: row.saves_count || 0,
+          isLiked: row.is_liked,
+          isSaved: row.is_saved,
+          isFollowingAuthor: row.is_following_author,
+          createdAt: row.created_at,
+          author: {
+            id: row.author_id,
+            name: row.author_name || row.author_username || row.author_email,
+            username: row.author_username,
+            email: row.author_email,
+            avatar: row.author_avatar || '/BestAdsUp.jpg',
+          },
+        }));
+
+        return {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(posts),
+        };
+      } catch (error) {
+        console.error('Error fetching explore posts:', error);
+        return {
+          statusCode: 500,
+          body: JSON.stringify({ message: 'Failed to fetch explore posts' }),
         };
       }
     })(event);

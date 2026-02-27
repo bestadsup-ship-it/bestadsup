@@ -19,7 +19,12 @@ function Login() {
       await authAPI.login(email, password);
       navigate('/');
     } catch (err) {
-      console.error('Login error:', err);
+      // Sanitized error logging - never log sensitive data
+      console.error('Login failed:', {
+        status: err.response?.status,
+        code: err.code,
+      });
+
       const errorMessage = err.response?.data?.error ||
                           err.response?.data?.message ||
                           err.message ||
@@ -30,6 +35,14 @@ function Login() {
         setError('Invalid email or password. Please try again.');
       } else if (errorMessage.includes('Invalid email')) {
         setError('Please enter a valid email address.');
+      } else if (errorMessage.includes('Too many login attempts')) {
+        setError('Too many login attempts. Please try again later.');
+      } else if (errorMessage.includes('temporarily locked')) {
+        setError('Account temporarily locked. Please try again later.');
+      } else if (err.response?.status === 429) {
+        setError('Too many requests. Please wait a moment and try again.');
+      } else if (err.response?.status === 423) {
+        setError('Account temporarily locked due to multiple failed attempts. Please try again later.');
       } else {
         setError(errorMessage);
       }

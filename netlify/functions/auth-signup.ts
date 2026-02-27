@@ -5,70 +5,108 @@ import { z } from 'zod';
 import { getPool } from './utils/db';
 
 const SignupSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  password: z.string().min(8),
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
+
+// Validate JWT_SECRET exists
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// Security headers
+const SECURITY_HEADERS = {
+  'Content-Type': 'application/json',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+};
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: SECURITY_HEADERS,
       body: JSON.stringify({ error: 'Method not allowed' }),
     };
   }
 
   try {
-    console.log('Signup request body:', event.body);
     const body = JSON.parse(event.body || '{}');
-    console.log('Parsed body:', body);
     const { name, email, password } = SignupSchema.parse(body);
+
+    // Normalize email
+    const normalizedEmail = email.toLowerCase().trim();
+
     const pool = getPool();
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    // Use bcrypt with salt rounds of 12 for better security
+    const passwordHash = await bcrypt.hash(password, 12);
 
     const result = await pool.query(
-      'INSERT INTO accounts (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email',
-      [name, email, passwordHash]
+      `INSERT INTO accounts (name, email, password_hash, failed_login_attempts, created_at)
+       VALUES ($1, $2, $3, 0, NOW())
+       RETURNING id, name, email, username`,
+      [name.trim(), normalizedEmail, passwordHash]
     );
 
     const account = result.rows[0];
 
     const token = jwt.sign(
       { accountId: account.id },
-      process.env.JWT_SECRET || 'secret',
+      JWT_SECRET,
       { expiresIn: '7d' }
     );
 
     return {
       statusCode: 201,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ account, token }),
+      headers: SECURITY_HEADERS,
+      body: JSON.stringify({
+        account: {
+          id: account.id,
+          name: account.name,
+          email: account.email,
+          username: account.username,
+        },
+        token
+      }),
     };
   } catch (error: any) {
-    console.error('Signup error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      stack: error.stack,
-    });
+    // Sanitized error logging
+    if (error instanceof z.ZodError) {
+      return {
+        statusCode: 400,
+        headers: SECURITY_HEADERS,
+        body: JSON.stringify({
+          error: 'Invalid input',
+          details: error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
+        }),
+      };
+    }
 
+    // Database duplicate email error
     if (error.code === '23505') {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: SECURITY_HEADERS,
         body: JSON.stringify({ error: 'Email already exists' }),
       };
     }
 
+    console.error('Signup error:', {
+      message: error.message,
+      code: error.code,
+    });
+
     return {
-      statusCode: 400,
-      headers: { 'Content-Type': 'application/json' },
+      statusCode: 500,
+      headers: SECURITY_HEADERS,
       body: JSON.stringify({
-        error: error.message || 'Signup failed',
-        details: error.errors || undefined
+        error: 'An error occurred during signup. Please try again.'
       }),
     };
   }

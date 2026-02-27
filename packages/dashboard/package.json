@@ -4,7 +4,9 @@
   "description": "B2B Ad Platform Dashboard",
   "private": true,
   "dependencies": {
+    "@types/dompurify": "^3.0.5",
     "axios": "^1.6.2",
+    "dompurify": "^3.3.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",

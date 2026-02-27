@@ -1,3 +1,77 @@
+/* Trending Tags Section */
+.trending-tags-section {
+  margin-bottom: 30px;
+}
+
+.trending-tags-section h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.trending-tags-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.trending-tag-card {
+  background: white;
+  border: 2px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.trending-tag-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF6B6B, #FFE66D, #4ECDC4, #007AFF);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.trending-tag-card:hover {
+  border-color: #007AFF;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 122, 255, 0.15);
+}
+
+.trending-tag-card:hover::before {
+  opacity: 1;
+}
+
+.trending-tag-rank {
+  font-size: 28px;
+  font-weight: 700;
+  color: #007AFF;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.trending-tag-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trending-tag-count {
+  font-size: 13px;
+  color: #666;
+}
+
 .explore-tabs {
   display: flex;
   gap: 12px;

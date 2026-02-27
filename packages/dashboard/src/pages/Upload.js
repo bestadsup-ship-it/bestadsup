@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import TagInput from '../components/TagInput';
 import { postsAPI } from '../api/client';
 import '../styles/upload.css';
 
 function Upload() {
   const navigate = useNavigate();
   const [content, setContent] = useState('');
+  const [tags, setTags] = useState([]);
   const [file, setFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [isPromoted, setIsPromoted] = useState(false);
@@ -59,6 +61,7 @@ function Upload() {
     try {
       const postData = {
         content,
+        tags,
         imageUrl: filePreview?.type === 'image' ? filePreview.url : undefined,
         videoUrl: filePreview?.type === 'video' ? filePreview.url : undefined,
         isPromoted,
@@ -70,6 +73,7 @@ function Upload() {
 
       // Reset form
       setContent('');
+      setTags([]);
       setFile(null);
       setFilePreview(null);
       setIsPromoted(false);
@@ -108,6 +112,15 @@ function Upload() {
                 onChange={(e) => setContent(e.target.value)}
                 rows={6}
                 required
+              />
+            </div>
+
+            <div className="upload-section">
+              <h3>Tags</h3>
+              <TagInput
+                tags={tags}
+                onChange={setTags}
+                placeholder="Add tags (e.g., #Marketing #B2B)"
               />
             </div>
 

@@ -1,50 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { notificationsAPI } from '../api/client';
 import Sidebar from '../components/Sidebar';
 import '../styles/activity.css';
 
 function Activity() {
   const [activeTab, setActiveTab] = useState('all');
-  const [activities] = useState([
-    {
-      id: 1,
-      type: 'like',
-      user: 'Marketing Pro',
-      avatar: '/BestAdsUp.jpg',
-      action: 'liked your post',
-      content: '"Check out our latest campaign..."',
-      timestamp: '2m ago',
-      read: false,
-    },
-    {
-      id: 2,
-      type: 'comment',
-      user: 'Sales Team',
-      avatar: '/BestAdsUp.jpg',
-      action: 'commented on your post',
-      content: 'Great insights!',
-      timestamp: '15m ago',
-      read: false,
-    },
-    {
-      id: 3,
-      type: 'follow',
-      user: 'Content Creator',
-      avatar: '/BestAdsUp.jpg',
-      action: 'started following you',
-      timestamp: '1h ago',
-      read: true,
-    },
-    {
-      id: 4,
-      type: 'mention',
-      user: 'Tech Corp',
-      avatar: '/BestAdsUp.jpg',
-      action: 'mentioned you in a comment',
-      content: '@you check this out!',
-      timestamp: '2h ago',
-      read: true,
-    },
-  ]);
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    loadActivities();
+  }, [activeTab]);
+
+  const loadActivities = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const filter = activeTab === 'unread' ? 'unread' : 'all';
+      const fetchedActivities = await notificationsAPI.getAll(filter);
+      setActivities(fetchedActivities);
+    } catch (err) {
+      console.error('Error loading notifications:', err);
+      // Only show error if it's an actual failure, not an empty result
+      if (err.response?.status !== 404) {
+        setError('Failed to load notifications. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      await notificationsAPI.markAsRead(notificationId);
+      // Update local state
+      setActivities(activities.map(a =>
+        a.id === notificationId ? { ...a, isRead: true } : a
+      ));
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationsAPI.markAllAsRead();
+      setActivities(activities.map(a => ({ ...a, isRead: true })));
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    }
+  };
 
   const getActivityIcon = (type) => {
     const icons = {
@@ -52,13 +58,38 @@ function Activity() {
       comment: '💬',
       follow: '👥',
       mention: '@',
+      reply: '↩️',
     };
     return icons[type] || '🔔';
   };
 
-  const filteredActivities = activeTab === 'all'
-    ? activities
-    : activities.filter(a => !a.read);
+  const getActivityAction = (type) => {
+    const actions = {
+      like: 'liked your post',
+      comment: 'commented on your post',
+      follow: 'started following you',
+      mention: 'mentioned you in a comment',
+      reply: 'replied to your comment',
+    };
+    return actions[type] || 'interacted with you';
+  };
+
+  const formatTimestamp = (timestamp) => {
+    const now = new Date();
+    const notifTime = new Date(timestamp);
+    const diffMs = now - notifTime;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return notifTime.toLocaleDateString();
+  };
+
+  const filteredActivities = activities;
 
   return (
     <div className="page-container">
@@ -80,30 +111,55 @@ function Activity() {
             className={`tab-btn ${activeTab === 'unread' ? 'active' : ''}`}
             onClick={() => setActiveTab('unread')}
           >
-            Unread ({activities.filter(a => !a.read).length})
+            Unread ({activities.filter(a => !a.isRead).length})
           </button>
+          {activities.some(a => !a.isRead) && (
+            <button
+              className="btn-mark-all-read"
+              onClick={handleMarkAllAsRead}
+              style={{ marginLeft: 'auto', padding: '8px 16px', fontSize: '14px' }}
+            >
+              Mark all as read
+            </button>
+          )}
         </div>
 
-        <div className="activity-list">
-          {filteredActivities.map(activity => (
-            <div key={activity.id} className={`activity-item ${!activity.read ? 'unread' : ''}`}>
-              <div className="activity-icon">{getActivityIcon(activity.type)}</div>
-              <img src={activity.avatar} alt={activity.user} className="activity-avatar" />
-              <div className="activity-content">
-                <p className="activity-text">
-                  <strong>{activity.user}</strong> {activity.action}
-                </p>
-                {activity.content && (
-                  <p className="activity-preview">{activity.content}</p>
-                )}
-                <span className="activity-time">{activity.timestamp}</span>
+        {error && <div className="error-message">{error}</div>}
+
+        {loading && <div className="loading">Loading notifications...</div>}
+
+        {!loading && (
+          <div className="activity-list">
+            {filteredActivities.map(activity => (
+              <div
+                key={activity.id}
+                className={`activity-item ${!activity.isRead ? 'unread' : ''}`}
+                onClick={() => !activity.isRead && handleMarkAsRead(activity.id)}
+                style={{ cursor: !activity.isRead ? 'pointer' : 'default' }}
+              >
+                <div className="activity-icon">{getActivityIcon(activity.type)}</div>
+                <img src={activity.actor.avatar} alt={activity.actor.name} className="activity-avatar" />
+                <div className="activity-content">
+                  <p className="activity-text">
+                    <strong>{activity.actor.name}</strong>
+                    {activity.actor.isVerified && ' ✓'}
+                    {' '}{getActivityAction(activity.type)}
+                  </p>
+                  {activity.content && (
+                    <p className="activity-preview">{activity.content}</p>
+                  )}
+                  {activity.post && activity.post.content && (
+                    <p className="activity-preview">"{activity.post.content.substring(0, 60)}..."</p>
+                  )}
+                  <span className="activity-time">{formatTimestamp(activity.createdAt)}</span>
+                </div>
+                {!activity.isRead && <span className="unread-dot"></span>}
               </div>
-              {!activity.read && <span className="unread-dot"></span>}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {filteredActivities.length === 0 && (
+        {!loading && !error && filteredActivities.length === 0 && (
           <div className="empty-state">
             <p>No {activeTab === 'unread' ? 'unread' : ''} notifications</p>
           </div>

@@ -11,6 +11,13 @@ import { adUnitsRouter } from './routes/ad-units';
 import { campaignsRouter } from './routes/campaigns';
 import { creativesRouter } from './routes/creatives';
 import postsRouter from './routes/posts';
+import productsRouter from './routes/products';
+import tagsRouter from './routes/tags';
+import notificationsRouter from './routes/notifications';
+import savesRouter from './routes/saves';
+import followsRouter from './routes/follows';
+import messagesRouter from './routes/messages';
+import { cartRouter } from './routes/cart';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -39,6 +46,13 @@ app.use('/ad-units', adUnitsRouter);
 app.use('/campaigns', campaignsRouter);
 app.use('/creatives', creativesRouter);
 app.use('/posts', postsRouter);
+app.use('/products', productsRouter);
+app.use('/tags', tagsRouter);
+app.use('/notifications', notificationsRouter);
+app.use('/saves', savesRouter);
+app.use('/follows', followsRouter);
+app.use('/messages', messagesRouter);
+app.use('/cart', cartRouter);
 
 // Health check
 app.get('/health', async (req, res) => {

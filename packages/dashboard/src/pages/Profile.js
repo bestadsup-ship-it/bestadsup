@@ -1,19 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import PostCard from '../components/PostCard';
-import { authAPI, postsAPI } from '../api/client';
+import { authAPI, postsAPI, followsAPI, savesAPI, profileAPI } from '../api/client';
 import '../styles/profile.css';
 
 function Profile() {
-  const user = authAPI.getUser();
+  const [profile, setProfile] = useState(null);
   const [activeTab, setActiveTab] = useState('posts');
   const [posts, setPosts] = useState([]);
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [savedPosts, setSavedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    username: '',
+    bio: '',
+    avatarUrl: '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
-    loadPosts();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [profileData, myPosts, following, followers] = await Promise.all([
+        profileAPI.getMyProfile(),
+        postsAPI.getMyPosts(),
+        followsAPI.getFollowing(),
+        followsAPI.getFollowers(),
+      ]);
+      setProfile(profileData);
+      setPosts(myPosts);
+      setFollowingCount(following.length);
+      setFollowersCount(followers.length);
+    } catch (err) {
+      console.error('Error loading profile data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);
@@ -21,17 +54,32 @@ function Profile() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const loadPosts = async () => {
-    setLoading(true);
+  const loadLikedPosts = async () => {
     try {
-      const fetchedPosts = await postsAPI.getMyPosts();
-      setPosts(fetchedPosts);
+      const liked = await postsAPI.getLiked();
+      setLikedPosts(liked);
     } catch (err) {
-      console.error('Error loading posts:', err);
-    } finally {
-      setLoading(false);
+      console.error('Error loading liked posts:', err);
     }
   };
+
+  const loadSavedPosts = async () => {
+    try {
+      const saved = await savesAPI.getSaved();
+      setSavedPosts(saved);
+    } catch (err) {
+      console.error('Error loading saved posts:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'likes' && likedPosts.length === 0) {
+      loadLikedPosts();
+    }
+    if (activeTab === 'saved' && savedPosts.length === 0) {
+      loadSavedPosts();
+    }
+  }, [activeTab]);
 
   const toggleMenu = (postId, e) => {
     e.stopPropagation();
@@ -53,6 +101,67 @@ function Profile() {
     }
   };
 
+  const handleEditProfile = async () => {
+    try {
+      const profile = await profileAPI.getMyProfile();
+      setEditForm({
+        name: profile.name || '',
+        username: profile.username || '',
+        bio: profile.bio || '',
+        avatarUrl: profile.avatar_url || '',
+      });
+      setShowEditModal(true);
+    } catch (err) {
+      console.error('Error loading profile:', err);
+    }
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    setUploadingImage(true);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEditForm({ ...editForm, avatarUrl: reader.result });
+      setUploadingImage(false);
+    };
+    reader.onerror = () => {
+      alert('Failed to read image file');
+      setUploadingImage(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      const updatedProfile = await profileAPI.updateProfile(editForm);
+      setProfile(updatedProfile);
+      setShowEditModal(false);
+    } catch (err) {
+      console.error('Error saving profile:', err);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="page-container">
       <Sidebar />
@@ -61,23 +170,23 @@ function Profile() {
           <div className="profile-cover"></div>
           <div className="profile-info">
             <img
-              src="/BestAdsUp.jpg"
+              src={profile?.avatar_url || '/BestAdsUp.jpg'}
               alt="Profile"
               className="profile-avatar"
             />
             <div className="profile-details">
-              <h1 className="profile-name">{user?.email || 'User'}</h1>
-              <p className="profile-handle">@{user?.email?.split('@')[0] || 'user'}</p>
+              <h1 className="profile-name">{profile?.name || profile?.email || 'User'}</h1>
+              <p className="profile-handle">@{profile?.username || profile?.email?.split('@')[0] || 'user'}</p>
               <p className="profile-bio">
-                B2B Marketing Professional | Growing brands through strategic advertising
+                {profile?.bio || 'B2B Marketing Professional | Growing brands through strategic advertising'}
               </p>
               <div className="profile-stats">
                 <div className="stat">
-                  <strong>0</strong>
+                  <strong>{followingCount}</strong>
                   <span>Following</span>
                 </div>
                 <div className="stat">
-                  <strong>0</strong>
+                  <strong>{followersCount}</strong>
                   <span>Followers</span>
                 </div>
                 <div className="stat">
@@ -86,7 +195,7 @@ function Profile() {
                 </div>
               </div>
             </div>
-            <button className="btn-primary edit-profile-btn">Edit Profile</button>
+            <button className="btn-primary edit-profile-btn" onClick={handleEditProfile}>Edit Profile</button>
           </div>
         </div>
 
@@ -108,6 +217,12 @@ function Profile() {
             onClick={() => setActiveTab('likes')}
           >
             Likes
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'saved' ? 'active' : ''}`}
+            onClick={() => setActiveTab('saved')}
+          >
+            🔖 Saved
           </button>
         </div>
 
@@ -183,14 +298,119 @@ function Profile() {
               )}
 
               {activeTab === 'likes' && (
-                <div className="empty-state">
-                  <p>No liked posts yet</p>
+                <div className="posts-list">
+                  {likedPosts.length === 0 ? (
+                    <div className="empty-state">
+                      <p>No liked posts yet</p>
+                    </div>
+                  ) : (
+                    likedPosts.map(post => (
+                      <PostCard key={post.id} post={post} hideActions={true} />
+                    ))
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'saved' && (
+                <div className="posts-list">
+                  {savedPosts.length === 0 ? (
+                    <div className="empty-state">
+                      <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔖</div>
+                      <p>No saved posts yet</p>
+                    </div>
+                  ) : (
+                    savedPosts.map(post => (
+                      <PostCard key={post.id} post={post} hideActions={true} onUpdate={loadSavedPosts} />
+                    ))
+                  )}
                 </div>
               )}
             </>
           )}
         </div>
       </main>
+
+      {showEditModal && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Profile</h2>
+              <button className="modal-close" onClick={() => setShowEditModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSaveProfile} className="edit-profile-form">
+              <div className="form-group">
+                <label>Profile Picture</label>
+                <div className="avatar-upload-section">
+                  <img
+                    src={editForm.avatarUrl || '/BestAdsUp.jpg'}
+                    alt="Profile"
+                    className="avatar-preview"
+                  />
+                  <div className="avatar-upload-controls">
+                    <input
+                      type="file"
+                      id="avatar-upload"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="avatar-upload" className="btn-upload">
+                      {uploadingImage ? 'Uploading...' : 'Change Picture'}
+                    </label>
+                    {editForm.avatarUrl && editForm.avatarUrl !== '/BestAdsUp.jpg' && (
+                      <button
+                        type="button"
+                        className="btn-remove"
+                        onClick={() => setEditForm({ ...editForm, avatarUrl: '' })}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="form-group">
+                <label htmlFor="name">Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="Your name"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="username">Username</label>
+                <input
+                  type="text"
+                  id="username"
+                  value={editForm.username}
+                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                  placeholder="@username"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="bio">Bio</label>
+                <textarea
+                  id="bio"
+                  value={editForm.bio}
+                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                  placeholder="Tell us about yourself"
+                  rows="4"
+                />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary" disabled={saving}>
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
