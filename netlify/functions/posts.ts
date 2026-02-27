@@ -40,11 +40,10 @@ export const handler: Handler = async (event) => {
             a.id as author_id,
             a.email as author_email,
             a.name as author_name,
-            a.username as author_username,
             a.avatar_url as author_avatar,
             EXISTS(SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.account_id = $3) as is_liked,
-            EXISTS(SELECT 1 FROM saves s WHERE s.post_id = p.id AND s.account_id = $3) as is_saved,
-            EXISTS(SELECT 1 FROM follows f WHERE f.follower_id = $3 AND f.following_id = p.account_id AND f.status = 'active') as is_following_author
+            EXISTS(SELECT 1 FROM post_saves s WHERE s.post_id = p.id AND s.account_id = $3) as is_saved,
+            EXISTS(SELECT 1 FROM follows f WHERE f.follower_id = $3 AND f.following_id = p.account_id) as is_following_author
           FROM posts p
           JOIN accounts a ON p.account_id = a.id
           ORDER BY p.created_at DESC
@@ -69,8 +68,7 @@ export const handler: Handler = async (event) => {
           createdAt: row.created_at,
           author: {
             id: row.author_id,
-            name: row.author_name || row.author_username || row.author_email,
-            username: row.author_username,
+            name: row.author_name || row.author_email,
             email: row.author_email,
             avatar: row.author_avatar || '/BestAdsUp.jpg',
           },
@@ -207,8 +205,7 @@ export const handler: Handler = async (event) => {
           author: {
             id: row.author_id,
             email: row.author_email,
-            name: row.author_name || row.author_username || row.author_email,
-            username: row.author_username,
+            name: row.author_name || row.author_email,
             avatar: row.author_avatar || '/BestAdsUp.jpg',
           },
           isFollowingAuthor: row.is_following_author,
@@ -441,8 +438,7 @@ export const handler: Handler = async (event) => {
           createdAt: row.created_at,
           author: {
             id: row.author_id,
-            name: row.author_name || row.author_username || row.author_email,
-            username: row.author_username,
+            name: row.author_name || row.author_email,
             email: row.author_email,
             avatar: row.author_avatar || '/BestAdsUp.jpg',
           },
@@ -561,8 +557,7 @@ export const handler: Handler = async (event) => {
           createdAt: row.created_at,
           author: {
             id: row.author_id,
-            name: row.author_name || row.author_username || row.author_email,
-            username: row.author_username,
+            name: row.author_name || row.author_email,
             email: row.author_email,
             avatar: row.author_avatar || '/BestAdsUp.jpg',
           },
