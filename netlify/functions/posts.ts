@@ -33,9 +33,9 @@ export const handler: Handler = async (event) => {
             p.is_promoted,
             p.views,
             p.clicks,
-            p.likes_count,
-            p.comments_count,
-            p.saves_count,
+            p.likes,
+            (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count,
+            (SELECT COUNT(*) FROM post_saves WHERE post_id = p.id) as saves_count,
             p.created_at,
             a.id as author_id,
             a.email as author_email,
@@ -59,9 +59,9 @@ export const handler: Handler = async (event) => {
           isPromoted: row.is_promoted,
           impressions: row.views || 0,
           clicks: row.clicks || 0,
-          likes: row.likes_count || 0,
-          commentsCount: row.comments_count || 0,
-          savesCount: row.saves_count || 0,
+          likes: row.likes || 0,
+          commentsCount: parseInt(row.comments_count) || 0,
+          savesCount: parseInt(row.saves_count) || 0,
           isLiked: row.is_liked,
           isSaved: row.is_saved,
           isFollowingAuthor: row.is_following_author,
@@ -105,7 +105,7 @@ export const handler: Handler = async (event) => {
             p.is_promoted,
             p.views,
             p.clicks,
-            p.likes_count,
+            p.likes,
             p.created_at,
             a.email as author_email,
             a.name as author_name,
@@ -126,7 +126,7 @@ export const handler: Handler = async (event) => {
           isPromoted: row.is_promoted,
           impressions: row.views || 0,
           clicks: row.clicks || 0,
-          likes: row.likes_count || 0,
+          likes: row.likes || 0,
           isLiked: row.is_liked,
           createdAt: row.created_at,
           author: {
@@ -167,18 +167,17 @@ export const handler: Handler = async (event) => {
             p.is_promoted,
             p.views,
             p.clicks,
-            p.likes_count,
-            p.comments_count,
-            p.saves_count,
+            p.likes,
+            (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count,
+            (SELECT COUNT(*) FROM post_saves WHERE post_id = p.id) as saves_count,
             p.created_at,
             a.id as author_id,
             a.email as author_email,
             a.name as author_name,
-            a.username as author_username,
             a.avatar_url as author_avatar,
             TRUE as is_liked,
-            EXISTS(SELECT 1 FROM saves s WHERE s.post_id = p.id AND s.account_id = $1) as is_saved,
-            EXISTS(SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = p.account_id AND f.status = 'active') as is_following_author
+            EXISTS(SELECT 1 FROM post_saves s WHERE s.post_id = p.id AND s.account_id = $1) as is_saved,
+            EXISTS(SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = p.account_id) as is_following_author
           FROM posts p
           JOIN accounts a ON p.account_id = a.id
           JOIN likes l ON p.id = l.post_id
@@ -196,9 +195,9 @@ export const handler: Handler = async (event) => {
           isPromoted: row.is_promoted,
           views: row.views,
           clicks: row.clicks,
-          likesCount: row.likes_count,
-          commentsCount: row.comments_count,
-          savesCount: row.saves_count,
+          likesCount: row.likes || 0,
+          commentsCount: parseInt(row.comments_count) || 0,
+          savesCount: parseInt(row.saves_count) || 0,
           createdAt: row.created_at,
           isLiked: row.is_liked,
           isSaved: row.is_saved,
@@ -251,7 +250,7 @@ export const handler: Handler = async (event) => {
             is_promoted,
             views,
             clicks,
-            likes_count,
+            likes,
             created_at`,
           [
             accountId,
@@ -322,7 +321,7 @@ export const handler: Handler = async (event) => {
 
         // Get updated like count
         const result = await pool.query(
-          'SELECT likes_count FROM posts WHERE id = $1',
+          'SELECT likes FROM posts WHERE id = $1',
           [postId]
         );
 
@@ -331,7 +330,7 @@ export const handler: Handler = async (event) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: 'Post liked',
-            likes: result.rows[0]?.likes_count || 0
+            likes: result.rows[0]?.likes || 0
           }),
         };
       } catch (error) {
@@ -358,7 +357,7 @@ export const handler: Handler = async (event) => {
 
         // Get updated like count
         const result = await pool.query(
-          'SELECT likes_count FROM posts WHERE id = $1',
+          'SELECT likes FROM posts WHERE id = $1',
           [postId]
         );
 
@@ -367,7 +366,7 @@ export const handler: Handler = async (event) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: 'Post unliked',
-            likes: result.rows[0]?.likes_count || 0
+            likes: result.rows[0]?.likes || 0
           }),
         };
       } catch (error) {
@@ -396,17 +395,16 @@ export const handler: Handler = async (event) => {
             p.is_promoted,
             p.views,
             p.clicks,
-            p.likes_count,
-            p.comments_count,
-            p.saves_count,
+            p.likes,
+            (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count,
+            (SELECT COUNT(*) FROM post_saves WHERE post_id = p.id) as saves_count,
             p.created_at,
             a.id as author_id,
             a.email as author_email,
             a.name as author_name,
-            a.username as author_username,
             a.avatar_url as author_avatar,
             EXISTS(SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.account_id = $1) as is_liked,
-            EXISTS(SELECT 1 FROM saves s WHERE s.post_id = p.id AND s.account_id = $1) as is_saved,
+            EXISTS(SELECT 1 FROM post_saves s WHERE s.post_id = p.id AND s.account_id = $1) as is_saved,
             TRUE as is_following_author
           FROM posts p
           JOIN accounts a ON p.account_id = a.id
@@ -414,7 +412,6 @@ export const handler: Handler = async (event) => {
             SELECT 1 FROM follows f
             WHERE f.follower_id = $1
             AND f.following_id = p.account_id
-            AND f.status = 'active'
           )
           ORDER BY p.created_at DESC
           LIMIT $2 OFFSET $3`,
@@ -429,9 +426,9 @@ export const handler: Handler = async (event) => {
           isPromoted: row.is_promoted,
           impressions: row.views || 0,
           clicks: row.clicks || 0,
-          likes: row.likes_count || 0,
-          commentsCount: row.comments_count || 0,
-          savesCount: row.saves_count || 0,
+          likes: row.likes || 0,
+          commentsCount: parseInt(row.comments_count) || 0,
+          savesCount: parseInt(row.saves_count) || 0,
           isLiked: row.is_liked,
           isSaved: row.is_saved,
           isFollowingAuthor: row.is_following_author,
@@ -480,18 +477,17 @@ export const handler: Handler = async (event) => {
             p.is_promoted,
             p.views,
             p.clicks,
-            p.likes_count,
-            p.comments_count,
-            p.saves_count,
+            p.likes,
+            (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count,
+            (SELECT COUNT(*) FROM post_saves WHERE post_id = p.id) as saves_count,
             p.created_at,
             a.id as author_id,
             a.email as author_email,
             a.name as author_name,
-            a.username as author_username,
             a.avatar_url as author_avatar,
             EXISTS(SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.account_id = $1) as is_liked,
-            EXISTS(SELECT 1 FROM saves s WHERE s.post_id = p.id AND s.account_id = $1) as is_saved,
-            EXISTS(SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = p.account_id AND f.status = 'active') as is_following_author
+            EXISTS(SELECT 1 FROM post_saves s WHERE s.post_id = p.id AND s.account_id = $1) as is_saved,
+            EXISTS(SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = p.account_id) as is_following_author
           FROM posts p
           JOIN accounts a ON p.account_id = a.id
         `;
@@ -501,7 +497,7 @@ export const handler: Handler = async (event) => {
             // Trending: High engagement in last 48 hours
             query = `${baseSelect}
               WHERE p.created_at >= NOW() - INTERVAL '48 hours'
-              ORDER BY (p.likes_count + p.comments_count * 2 + p.saves_count) DESC, p.created_at DESC
+              ORDER BY (p.likes + (SELECT COUNT(*) FROM comments WHERE post_id = p.id) * 2 + (SELECT COUNT(*) FROM post_saves WHERE post_id = p.id)) DESC, p.created_at DESC
               LIMIT $2 OFFSET $3`;
             queryParams = [accountId, limit, offset];
             break;
@@ -509,7 +505,7 @@ export const handler: Handler = async (event) => {
           case 'popular':
             // Popular: Most likes and engagement all-time
             query = `${baseSelect}
-              ORDER BY (p.likes_count + p.comments_count * 2 + p.saves_count) DESC, p.created_at DESC
+              ORDER BY (p.likes + (SELECT COUNT(*) FROM comments WHERE post_id = p.id) * 2 + (SELECT COUNT(*) FROM post_saves WHERE post_id = p.id)) DESC, p.created_at DESC
               LIMIT $2 OFFSET $3`;
             queryParams = [accountId, limit, offset];
             break;
@@ -548,9 +544,9 @@ export const handler: Handler = async (event) => {
           isPromoted: row.is_promoted,
           impressions: row.views || 0,
           clicks: row.clicks || 0,
-          likes: row.likes_count || 0,
-          commentsCount: row.comments_count || 0,
-          savesCount: row.saves_count || 0,
+          likes: row.likes || 0,
+          commentsCount: parseInt(row.comments_count) || 0,
+          savesCount: parseInt(row.saves_count) || 0,
           isLiked: row.is_liked,
           isSaved: row.is_saved,
           isFollowingAuthor: row.is_following_author,
