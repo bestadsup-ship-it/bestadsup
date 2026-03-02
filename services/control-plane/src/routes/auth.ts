@@ -11,6 +11,9 @@ const SignupSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  account_type: z.enum(['creator', 'buyer'], {
+    errorMap: () => ({ message: 'Account type must be either "creator" or "buyer"' })
+  }),
 });
 
 const LoginSchema = z.object({
@@ -36,7 +39,7 @@ router.use((req, res, next) => {
 
 router.post('/signup', async (req: Request, res: Response) => {
   try {
-    const { name, email, password } = SignupSchema.parse(req.body);
+    const { name, email, password, account_type } = SignupSchema.parse(req.body);
 
     // Normalize email
     const normalizedEmail = email.toLowerCase().trim();
@@ -45,16 +48,16 @@ router.post('/signup', async (req: Request, res: Response) => {
     const passwordHash = await bcrypt.hash(password, 12);
 
     const result = await pool.query(
-      `INSERT INTO accounts (name, email, password_hash, failed_login_attempts, created_at)
-       VALUES ($1, $2, $3, 0, NOW())
-       RETURNING id, name, email, username`,
-      [name.trim(), normalizedEmail, passwordHash]
+      `INSERT INTO accounts (name, email, password_hash, account_type, failed_login_attempts, created_at)
+       VALUES ($1, $2, $3, $4, 0, NOW())
+       RETURNING id, name, email, account_type`,
+      [name.trim(), normalizedEmail, passwordHash, account_type]
     );
 
     const account = result.rows[0];
 
     const token = jwt.sign(
-      { accountId: account.id },
+      { accountId: account.id, accountType: account.account_type },
       getJWT_SECRET(),
       { expiresIn: '7d' }
     );
@@ -64,7 +67,7 @@ router.post('/signup', async (req: Request, res: Response) => {
         id: account.id,
         name: account.name,
         email: account.email,
-        username: account.username,
+        account_type: account.account_type,
       },
       token
     });
@@ -132,7 +135,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     // Query account
     const result = await pool.query(
-      `SELECT id, name, email, username, password_hash, failed_login_attempts
+      `SELECT id, name, email, password_hash, account_type, failed_login_attempts
        FROM accounts WHERE email = $1`,
       [normalizedEmail]
     );
@@ -168,7 +171,7 @@ router.post('/login', async (req: Request, res: Response) => {
     );
 
     const token = jwt.sign(
-      { accountId: account.id },
+      { accountId: account.id, accountType: account.account_type },
       getJWT_SECRET(),
       { expiresIn: '7d' }
     );
@@ -178,7 +181,7 @@ router.post('/login', async (req: Request, res: Response) => {
         id: account.id,
         name: account.name,
         email: account.email,
-        username: account.username,
+        account_type: account.account_type,
       },
       token,
     });

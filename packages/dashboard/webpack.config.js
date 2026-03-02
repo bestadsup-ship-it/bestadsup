@@ -54,10 +54,13 @@ module.exports = {
       'process.env.REACT_APP_REPORTING_URL': JSON.stringify(
         process.env.REACT_APP_REPORTING_URL || 'http://localhost:3004'
       ),
+      'process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY': JSON.stringify(
+        process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder'
+      ),
     }),
   ],
   devServer: {
-    port: 3000,
+    port: 3005,
     host: '0.0.0.0',
     historyApiFallback: true,
     hot: true,

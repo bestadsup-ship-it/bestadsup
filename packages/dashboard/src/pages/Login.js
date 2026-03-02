@@ -62,6 +62,9 @@ function Login() {
           />
           <h1>BestAdsUp</h1>
           <h2>Sign In</h2>
+          <p style={{ color: '#666', fontSize: '0.9rem', margin: '0.5rem 0 0 0' }}>
+            The SaaS marketing marketplace
+          </p>
         </div>
 
         {error && <div className="error-message">{error}</div>}

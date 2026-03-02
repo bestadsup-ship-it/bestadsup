@@ -3,7 +3,10 @@
     "allow": [
       "Bash(node:*)",
       "Bash(psql:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":3000\")",
+      "Bash(findstr LISTENING)"
     ],
     "deny": [],
     "ask": []

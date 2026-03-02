@@ -4,6 +4,8 @@
   "description": "B2B Ad Platform Dashboard",
   "private": true,
   "dependencies": {
+    "@stripe/react-stripe-js": "^5.6.0",
+    "@stripe/stripe-js": "^8.8.0",
     "@types/dompurify": "^3.0.5",
     "axios": "^1.6.2",
     "dompurify": "^3.3.1",
@@ -26,6 +28,7 @@
     "webpack-dev-server": "^4.15.1"
   },
   "scripts": {
+    "dev": "webpack serve --mode development",
     "start": "webpack serve --mode development --open",
     "build": "webpack --mode production",
     "serve": "webpack serve --mode development"

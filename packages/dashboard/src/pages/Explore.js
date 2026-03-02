@@ -23,13 +23,11 @@ function Explore() {
     setError('');
     try {
       const fetchedPosts = await postsAPI.getExplore(filter);
-      setPosts(fetchedPosts);
+      setPosts(fetchedPosts || []);
     } catch (err) {
       console.error('Error loading explore posts:', err);
-      // Only show error if it's an actual failure, not an empty result
-      if (err.response?.status !== 404) {
-        setError('Failed to load posts. Please try again.');
-      }
+      // Gracefully handle errors - show empty state
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -38,9 +36,10 @@ function Explore() {
   const loadTrendingTags = async () => {
     try {
       const tags = await postsAPI.getTrendingTags(15);
-      setTrendingTags(tags);
+      setTrendingTags(tags || []);
     } catch (err) {
       console.error('Error loading trending tags:', err);
+      setTrendingTags([]);
     }
   };
 
@@ -58,7 +57,7 @@ function Explore() {
       <main className="page-main">
         <div className="page-header">
           <h1>🧭 Explore</h1>
-          <p>Discover trending content and campaigns</p>
+          <p>Discover top SaaS marketing creators & proven strategies</p>
         </div>
 
         {trendingTags.length > 0 && (
@@ -107,23 +106,35 @@ function Explore() {
           </button>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
-
         {loading && <div className="loading">Loading posts...</div>}
 
         <div className="explore-content">
-          {!loading && !error && posts.length === 0 && (
-            <div className="empty-state">
-              <p>No posts found for this filter.</p>
+          {!loading && posts.length === 0 ? (
+            <div className="empty-state" style={{ padding: '60px 20px', textAlign: 'center' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎯</div>
+              <h3 style={{ marginBottom: '8px' }}>No posts yet</h3>
+              <p style={{ color: '#666', marginBottom: '20px' }}>
+                {activeTab === 'trending' && 'No trending posts right now. Check back soon!'}
+                {activeTab === 'popular' && 'No popular posts yet. Be the first to create!'}
+                {activeTab === 'recent' && 'No recent posts. Start sharing your SaaS marketing wins!'}
+                {activeTab === 'promoted' && 'No promoted posts currently.'}
+              </p>
+              <button
+                className="btn-primary"
+                onClick={() => window.location.href = '/upload'}
+              >
+                Post Your Work
+              </button>
             </div>
+          ) : (
+            posts.map(post => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onUpdate={() => loadPosts(activeTab)}
+              />
+            ))
           )}
-          {posts.map(post => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onUpdate={() => loadPosts(activeTab)}
-            />
-          ))}
         </div>
       </main>
     </div>

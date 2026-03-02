@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { postsAPI, accountsAPI, followsAPI } from '../api/client';
+import { postsAPI } from '../api/client';
 import Sidebar from '../components/Sidebar';
 import PostCard from '../components/PostCard';
 import '../styles/following.css';
@@ -22,13 +22,11 @@ function Following() {
     setError('');
     try {
       const fetchedPosts = await postsAPI.getFollowing();
-      setPosts(fetchedPosts);
+      setPosts(fetchedPosts || []);
     } catch (err) {
       console.error('Error loading following posts:', err);
-      // Only show error if it's an actual failure, not an empty result
-      if (err.response?.status !== 404) {
-        setError('Failed to load posts. Please try again.');
-      }
+      // Gracefully handle errors - show empty state instead
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -38,9 +36,11 @@ function Following() {
     setSuggestionsLoading(true);
     try {
       const fetchedAccounts = await accountsAPI.getSuggested(5);
-      setSuggestedAccounts(fetchedAccounts);
+      setSuggestedAccounts(fetchedAccounts || []);
     } catch (err) {
       console.error('Error loading suggested accounts:', err);
+      // Gracefully handle errors
+      setSuggestedAccounts([]);
     } finally {
       setSuggestionsLoading(false);
     }
@@ -72,13 +72,11 @@ function Following() {
       <main className="page-main">
         <div className="page-header">
           <h1>👥 Following</h1>
-          <p>Content from accounts you follow</p>
+          <p>Posts from SaaS marketers you follow</p>
         </div>
 
         <div className="following-layout">
           <div className="following-feed">
-            {error && <div className="error-message">{error}</div>}
-
             {loading && <div className="loading">Loading posts...</div>}
 
             {!loading && posts.length > 0 ? (
@@ -90,10 +88,14 @@ function Following() {
                 />
               ))
             ) : !loading ? (
-              <div className="empty-state">
-                <p>Follow accounts to see their posts here</p>
+              <div className="empty-state" style={{ padding: '60px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>👥</div>
+                <h3 style={{ marginBottom: '8px' }}>No posts yet</h3>
+                <p style={{ color: '#666', marginBottom: '20px' }}>
+                  Follow SaaS marketing creators to see their content here
+                </p>
                 <button className="btn-primary" onClick={() => window.location.href = '/explore'}>
-                  Explore Accounts
+                  Discover Creators
                 </button>
               </div>
             ) : null}
@@ -101,7 +103,7 @@ function Following() {
 
           <aside className="suggestions-sidebar">
             <div className="sidebar-card">
-              <h3>Suggested for you</h3>
+              <h3>SaaS Marketing Creators</h3>
               {suggestionsLoading ? (
                 <div className="loading-suggestions">Loading...</div>
               ) : (

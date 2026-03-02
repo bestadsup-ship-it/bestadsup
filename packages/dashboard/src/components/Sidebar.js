@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { notificationsAPI, cartAPI } from '../api/client';
+import { cartAPI } from '../api/client';
 import { onCartUpdate } from '../utils/events';
 import '../styles/sidebar.css';
 
@@ -8,7 +8,6 @@ function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [unreadCount, setUnreadCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
 
   // Fetch cart item count
@@ -23,46 +22,24 @@ function Sidebar() {
   };
 
   useEffect(() => {
-    // Fetch unread notification count
-    const fetchUnreadCount = async () => {
-      try {
-        const data = await notificationsAPI.getUnreadCount();
-        setUnreadCount(data.count || 0);
-      } catch (error) {
-        console.error('Error fetching unread count:', error);
-        // Don't show error to user, just keep count at 0
-      }
-    };
-
-    fetchUnreadCount();
     fetchCartCount();
-
-    // Poll for notification updates every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
 
     // Listen for cart updates
     const unsubscribe = onCartUpdate(fetchCartCount);
 
     return () => {
-      clearInterval(interval);
       unsubscribe();
     };
   }, []);
 
   const menuItems = [
-    { icon: '🏠', label: 'For You', path: '/', active: true },
-    { icon: '💼', label: 'Services', path: '/shop' },
+    { icon: '🏠', label: 'Browse Services', path: '/shop', active: true },
+    { icon: '📦', label: 'My Orders', path: '/orders' },
     { icon: '🛒', label: 'Cart', path: '/cart', badge: cartCount },
-    { icon: '🧭', label: 'Explore', path: '/explore' },
-    { icon: '👥', label: 'Following', path: '/following' },
-    { icon: '👤', label: 'Network', path: '/friends' },
-    { icon: '📺', label: 'LIVE', path: '/live' },
-    { icon: '💬', label: 'Messages', path: '/messages' },
-    { icon: '🔔', label: 'Activity', path: '/activity', badge: unreadCount },
-    { icon: '➕', label: 'Upload', path: '/upload', highlight: true },
-    { icon: '👨‍💼', label: 'Profile', path: '/profile' },
-    { icon: '🔧', label: 'Admin', path: '/admin' },
-    { icon: '📊', label: 'Analytics', path: '/dashboard' },
+    { icon: '➕', label: 'List Service', path: '/upload', highlight: true },
+    { icon: '👨‍💼', label: 'My Profile', path: '/profile' },
+    { icon: '🔐', label: 'Verification', path: '/verification' },
+    { icon: '📊', label: 'Dashboard', path: '/dashboard' },
   ];
 
   const isActive = (path) => {
@@ -91,7 +68,7 @@ function Sidebar() {
         <span className="search-icon">🔍</span>
         <input
           type="text"
-          placeholder="Search tags (e.g., #Marketing)"
+          placeholder="Search services..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -112,16 +89,6 @@ function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="footer-section">
-          <div className="footer-title">Following accounts</div>
-          <div className="following-list">
-            <div className="following-item">
-              <div className="following-avatar"></div>
-              <span>Following feed</span>
-            </div>
-          </div>
-        </div>
-
         <div className="footer-links">
           <a href="#">Company</a>
           <a href="#">Program</a>

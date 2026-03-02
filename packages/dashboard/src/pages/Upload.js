@@ -95,8 +95,8 @@ function Upload() {
       <Sidebar />
       <main className="page-main">
         <div className="page-header">
-          <h1>➕ Upload</h1>
-          <p>Create and publish your content</p>
+          <h1>➕ List Your Service</h1>
+          <p>Showcase your work or create a service listing</p>
         </div>
 
         <div className="upload-container">

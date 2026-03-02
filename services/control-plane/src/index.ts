@@ -12,13 +12,19 @@ import { campaignsRouter } from './routes/campaigns';
 import { creativesRouter } from './routes/creatives';
 import postsRouter from './routes/posts';
 import productsRouter from './routes/products';
-import tagsRouter from './routes/tags';
-import notificationsRouter from './routes/notifications';
-import savesRouter from './routes/saves';
-import followsRouter from './routes/follows';
-import messagesRouter from './routes/messages';
+import servicesRouter from './routes/services';
+import verificationRouter from './routes/verification';
+// Deprecated social feature routes removed:
+// import tagsRouter from './routes/tags';
+// import notificationsRouter from './routes/notifications';
+// import savesRouter from './routes/saves';
+// import followsRouter from './routes/follows';
+// import messagesRouter from './routes/messages';
 import { cartRouter } from './routes/cart';
 import profileRouter from './routes/profile';
+import ordersRouter from './routes/orders';
+import paymentsRouter from './routes/payments';
+import reviewsRouter from './routes/reviews';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -49,12 +55,18 @@ app.use('/campaigns', campaignsRouter);
 app.use('/creatives', creativesRouter);
 app.use('/posts', postsRouter);
 app.use('/products', productsRouter);
-app.use('/tags', tagsRouter);
-app.use('/notifications', notificationsRouter);
-app.use('/saves', savesRouter);
-app.use('/follows', followsRouter);
-app.use('/messages', messagesRouter);
+app.use('/services', servicesRouter);
+app.use('/verification', verificationRouter);
+// Deprecated social feature routes removed (marketplace doesn't need likes/follows/tags)
+// app.use('/tags', tagsRouter);
+// app.use('/notifications', notificationsRouter);
+// app.use('/saves', savesRouter);
+// app.use('/follows', followsRouter);
+// app.use('/messages', messagesRouter); // Replaced by project_messages in projects
 app.use('/cart', cartRouter);
+app.use('/orders', ordersRouter);
+app.use('/payments', paymentsRouter);
+app.use('/reviews', reviewsRouter);
 
 // Health check
 app.get('/health', async (req, res) => {

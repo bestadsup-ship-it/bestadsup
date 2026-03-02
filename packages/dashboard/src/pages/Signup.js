@@ -65,9 +65,9 @@ function Signup() {
             style={{ width: '80px', height: '80px', borderRadius: '50%', marginBottom: '1rem' }}
           />
           <h1>BestAdsUp</h1>
-          <h2>Create Account</h2>
+          <h2>Get Started</h2>
           <p style={{ color: '#666', fontSize: '0.9rem', margin: '0.5rem 0 0 0' }}>
-            Join the B2B creator marketplace
+            Hire SaaS marketers or sell your services
           </p>
         </div>
 
@@ -77,40 +77,46 @@ function Signup() {
           <div className="form-group">
             <label>Account Type</label>
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-              <label style={{ flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '0.75rem', border: `2px solid ${accountType === 'creator' ? '#4a90e2' : '#ddd'}`, borderRadius: '6px', background: accountType === 'creator' ? '#f0f7ff' : 'transparent' }}>
-                <input
-                  type="radio"
-                  name="accountType"
-                  value="creator"
-                  checked={accountType === 'creator'}
-                  onChange={(e) => setAccountType(e.target.value)}
-                  style={{ marginRight: '0.5rem' }}
-                />
-                <span style={{ fontWeight: '500' }}>💼 Creator</span>
+              <label style={{ flex: 1, display: 'flex', flexDirection: 'column', cursor: 'pointer', padding: '0.75rem', border: `2px solid ${accountType === 'creator' ? '#4a90e2' : '#ddd'}`, borderRadius: '6px', background: accountType === 'creator' ? '#f0f7ff' : 'transparent' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.25rem' }}>
+                  <input
+                    type="radio"
+                    name="accountType"
+                    value="creator"
+                    checked={accountType === 'creator'}
+                    onChange={(e) => setAccountType(e.target.value)}
+                    style={{ marginRight: '0.5rem' }}
+                  />
+                  <span style={{ fontWeight: '500' }}>🎨 Creator</span>
+                </div>
+                <span style={{ fontSize: '0.75rem', color: '#666', marginLeft: '1.5rem' }}>Sell services</span>
               </label>
-              <label style={{ flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '0.75rem', border: `2px solid ${accountType === 'buyer' ? '#4a90e2' : '#ddd'}`, borderRadius: '6px', background: accountType === 'buyer' ? '#f0f7ff' : 'transparent' }}>
-                <input
-                  type="radio"
-                  name="accountType"
-                  value="buyer"
-                  checked={accountType === 'buyer'}
-                  onChange={(e) => setAccountType(e.target.value)}
-                  style={{ marginRight: '0.5rem' }}
-                />
-                <span style={{ fontWeight: '500' }}>🏢 Buyer</span>
+              <label style={{ flex: 1, display: 'flex', flexDirection: 'column', cursor: 'pointer', padding: '0.75rem', border: `2px solid ${accountType === 'buyer' ? '#4a90e2' : '#ddd'}`, borderRadius: '6px', background: accountType === 'buyer' ? '#f0f7ff' : 'transparent' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.25rem' }}>
+                  <input
+                    type="radio"
+                    name="accountType"
+                    value="buyer"
+                    checked={accountType === 'buyer'}
+                    onChange={(e) => setAccountType(e.target.value)}
+                    style={{ marginRight: '0.5rem' }}
+                  />
+                  <span style={{ fontWeight: '500' }}>🚀 Founder</span>
+                </div>
+                <span style={{ fontSize: '0.75rem', color: '#666', marginLeft: '1.5rem' }}>Hire talent</span>
               </label>
             </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="organizationName">Organization Name</label>
+            <label htmlFor="organizationName">Your Name</label>
             <input
               type="text"
               id="organizationName"
               value={organizationName}
               onChange={(e) => setOrganizationName(e.target.value)}
               required
-              placeholder="Your Company Inc."
+              placeholder="Jane Smith"
               disabled={loading}
             />
           </div>

@@ -1,102 +1,81 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { cartAPI } from '../api/client';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { servicesAPI, ordersAPI } from '../api/client';
 import Sidebar from '../components/Sidebar';
-import Modal from '../components/Modal';
 import Toast from '../components/Toast';
-import { emitCartUpdate } from '../utils/events';
 import '../styles/checkout.css';
 
 function Checkout() {
   const navigate = useNavigate();
-  const [cart, setCart] = useState(null);
+  const location = useLocation();
+  const { serviceId, selectedTier } = location.state || {};
+
+  const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
-  const [modal, setModal] = useState({ isOpen: false, message: '' });
   const [toast, setToast] = useState({ isVisible: false, type: '', message: '' });
 
-  const [formData, setFormData] = useState({
-    // Shipping info
-    shippingName: '',
-    shippingEmail: '',
-    shippingAddress: '',
-    shippingCity: '',
-    shippingState: '',
-    shippingZip: '',
-    shippingCountry: 'US',
-
-    // Payment info
-    paymentMethod: 'card',
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvc: '',
-    cardName: '',
-
-    // Additional
-    notes: '',
-  });
+  // Form data
+  const [requirements, setRequirements] = useState('');
 
   useEffect(() => {
-    loadCart();
-  }, []);
+    if (!serviceId) {
+      navigate('/shop');
+      return;
+    }
+    loadService();
+  }, [serviceId]);
 
-  const loadCart = async () => {
+  const loadService = async () => {
     setLoading(true);
     setError('');
     try {
-      const data = await cartAPI.get();
-      if (!data || data.items.length === 0) {
-        navigate('/cart');
-        return;
-      }
-      setCart(data);
+      const data = await servicesAPI.getById(serviceId);
+      setService(data);
     } catch (err) {
-      console.error('Error loading cart:', err);
-      setError('Failed to load cart. Please try again.');
+      console.error('Error loading service:', err);
+      setError('Failed to load service details. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    setProcessing(true);
+    setCreating(true);
     setError('');
 
     try {
-      // TODO: Implement actual order creation API
-      // For now, just simulate a delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const orderData = {
+        service_id: serviceId,
+        buyer_requirements: requirements || undefined,
+      };
 
-      // Clear cart after successful order
-      await cartAPI.clear();
-      emitCartUpdate(); // Notify sidebar to update cart count
+      // Add tier info if selected
+      if (selectedTier) {
+        orderData.selected_tier_name = selectedTier.name;
+        orderData.selected_tier_price = selectedTier.price;
+      }
 
-      setModal({
-        isOpen: true,
-        message: 'Your order has been placed successfully! You will receive a confirmation email shortly.',
-      });
-    } catch (err) {
-      console.error('Error processing order:', err);
+      const order = await ordersAPI.create(orderData);
+
       setToast({
         isVisible: true,
-        type: 'error',
-        message: 'Failed to process order. Please try again.',
+        type: 'success',
+        message: 'Order created! Redirecting to payment...',
       });
-    } finally {
-      setProcessing(false);
-    }
-  };
 
-  const closeModal = () => {
-    setModal({ isOpen: false, message: '' });
-    navigate('/shop');
+      // Redirect to payment page
+      setTimeout(() => {
+        navigate(`/payment/${order.id}`);
+      }, 1000);
+    } catch (err) {
+      console.error('Error creating order:', err);
+      setError(err.response?.data?.message || 'Failed to create order. Please try again.');
+    } finally {
+      setCreating(false);
+    }
   };
 
   const closeToast = () => {
@@ -108,253 +87,180 @@ function Checkout() {
       <div className="page-container">
         <Sidebar />
         <main className="page-main">
-          <div className="loading" style={{ padding: '40px', textAlign: 'center' }}>Loading checkout...</div>
+          <div className="loading" style={{ padding: '40px', textAlign: 'center' }}>
+            Loading checkout...
+          </div>
         </main>
       </div>
     );
   }
 
+  if (!service) {
+    return (
+      <div className="page-container">
+        <Sidebar />
+        <main className="page-main">
+          <div className="error-message">Service not found</div>
+        </main>
+      </div>
+    );
+  }
+
+  const price = selectedTier ? selectedTier.price : service.price;
+  const platformFee = Math.round(price * 0.10 * 100) / 100;
+  const total = price;
+
   return (
     <div className="page-container">
       <Sidebar />
       <main className="page-main">
-        <div className="page-header">
-          <h1>💳 Checkout</h1>
-          <p>Complete your purchase</p>
-        </div>
-
-        {error && <div className="error-message">{error}</div>}
-
-        <form className="checkout-container" onSubmit={handleSubmit}>
-          <div className="checkout-forms">
-            {/* Shipping Information */}
-            <div className="checkout-section">
-              <h2>Shipping Information</h2>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Full Name *</label>
-                  <input
-                    type="text"
-                    name="shippingName"
-                    value={formData.shippingName}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Email *</label>
-                  <input
-                    type="email"
-                    name="shippingEmail"
-                    value={formData.shippingEmail}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group full-width">
-                  <label>Address *</label>
-                  <input
-                    type="text"
-                    name="shippingAddress"
-                    value={formData.shippingAddress}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>City *</label>
-                  <input
-                    type="text"
-                    name="shippingCity"
-                    value={formData.shippingCity}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>State/Province *</label>
-                  <input
-                    type="text"
-                    name="shippingState"
-                    value={formData.shippingState}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>ZIP/Postal Code *</label>
-                  <input
-                    type="text"
-                    name="shippingZip"
-                    value={formData.shippingZip}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Country *</label>
-                  <select
-                    name="shippingCountry"
-                    value={formData.shippingCountry}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="US">United States</option>
-                    <option value="CA">Canada</option>
-                    <option value="UK">United Kingdom</option>
-                    <option value="AU">Australia</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Payment Information */}
-            <div className="checkout-section">
-              <h2>Payment Information</h2>
-              <div className="form-grid">
-                <div className="form-group full-width">
-                  <label>Payment Method *</label>
-                  <select
-                    name="paymentMethod"
-                    value={formData.paymentMethod}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="card">Credit/Debit Card</option>
-                    <option value="paypal">PayPal</option>
-                    <option value="bank">Bank Transfer</option>
-                  </select>
-                </div>
-
-                {formData.paymentMethod === 'card' && (
-                  <>
-                    <div className="form-group full-width">
-                      <label>Card Number *</label>
-                      <input
-                        type="text"
-                        name="cardNumber"
-                        value={formData.cardNumber}
-                        onChange={handleInputChange}
-                        placeholder="1234 5678 9012 3456"
-                        required
-                      />
-                    </div>
-                    <div className="form-group full-width">
-                      <label>Cardholder Name *</label>
-                      <input
-                        type="text"
-                        name="cardName"
-                        value={formData.cardName}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Expiry Date *</label>
-                      <input
-                        type="text"
-                        name="cardExpiry"
-                        value={formData.cardExpiry}
-                        onChange={handleInputChange}
-                        placeholder="MM/YY"
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>CVC *</label>
-                      <input
-                        type="text"
-                        name="cardCvc"
-                        value={formData.cardCvc}
-                        onChange={handleInputChange}
-                        placeholder="123"
-                        required
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Order Notes */}
-            <div className="checkout-section">
-              <h2>Order Notes (Optional)</h2>
-              <textarea
-                name="notes"
-                value={formData.notes}
-                onChange={handleInputChange}
-                placeholder="Special instructions or notes for your order..."
-                rows="4"
-              />
-            </div>
+        <div className="checkout-container">
+          <div className="checkout-header">
+            <h1>Checkout</h1>
+            <button className="btn-text" onClick={() => navigate(-1)}>
+              ← Back to Service
+            </button>
           </div>
 
-          <div className="checkout-summary">
-            <h2>Order Summary</h2>
+          {error && <div className="error-message">{error}</div>}
 
-            <div className="summary-items">
-              {cart && cart.items.map(item => (
-                <div key={item.id} className="summary-item">
-                  <div className="summary-item-info">
-                    <span className="summary-item-name">{item.product.name}</span>
-                    <span className="summary-item-qty">x{item.quantity}</span>
+          <div className="checkout-content">
+            {/* Left Column - Order Form */}
+            <div className="checkout-form-section">
+              <div className="checkout-card">
+                <h2>Order Details</h2>
+
+                <div className="service-summary">
+                  {service.image_url && (
+                    <img src={service.image_url} alt={service.name} className="service-thumbnail" />
+                  )}
+                  <div className="service-info">
+                    <h3>{service.name}</h3>
+                    {selectedTier && <p className="tier-name">Tier: {selectedTier.name}</p>}
+                    {service.creator && (
+                      <p className="creator-name">by {service.creator.name}</p>
+                    )}
                   </div>
-                  <span className="summary-item-price">${item.subtotal.toFixed(2)}</span>
                 </div>
-              ))}
+
+                <form onSubmit={handlePlaceOrder}>
+                  <div className="form-group">
+                    <label htmlFor="requirements">
+                      Project Requirements
+                      <span className="label-hint">(optional)</span>
+                    </label>
+                    <textarea
+                      id="requirements"
+                      value={requirements}
+                      onChange={(e) => setRequirements(e.target.value)}
+                      placeholder="Describe your project needs, goals, target audience, any specific requirements..."
+                      rows={6}
+                    />
+                    <small className="field-hint">
+                      Provide details to help the creator understand your project better
+                    </small>
+                  </div>
+
+                  <div className="form-section">
+                    <h3>What Happens Next?</h3>
+                    <ol className="next-steps">
+                      <li>Your order will be created with status "Pending Payment"</li>
+                      <li>You'll be redirected to complete payment (Stripe integration coming soon)</li>
+                      <li>Once paid, the creator will be notified to start work</li>
+                      <li>Track progress in your project workspace</li>
+                    </ol>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn-primary btn-block"
+                    disabled={creating}
+                  >
+                    {creating ? 'Creating Order...' : `Place Order - $${total.toFixed(2)}`}
+                  </button>
+                </form>
+              </div>
             </div>
 
-            <div className="summary-totals">
-              <div className="summary-row">
-                <span>Subtotal:</span>
-                <span>${cart?.total.toFixed(2)}</span>
+            {/* Right Column - Order Summary */}
+            <div className="checkout-summary-section">
+              <div className="checkout-card summary-card">
+                <h2>Order Summary</h2>
+
+                <div className="summary-row">
+                  <span>Service Price</span>
+                  <span className="price">${price.toFixed(2)}</span>
+                </div>
+
+                {selectedTier && (
+                  <div className="summary-row tier-info">
+                    <span>{selectedTier.name}</span>
+                    <span className="tier-badge">Selected Tier</span>
+                  </div>
+                )}
+
+                <div className="summary-divider" />
+
+                <div className="summary-row total">
+                  <span>Total</span>
+                  <span className="price">${total.toFixed(2)}</span>
+                </div>
+
+                <div className="summary-note">
+                  <p>
+                    <strong>Note:</strong> Payment processing will be integrated in a future update.
+                    For now, orders will be created with "Pending Payment" status.
+                  </p>
+                </div>
+
+                <div className="summary-details">
+                  <h3>What's Included</h3>
+                  {selectedTier ? (
+                    <ul>
+                      {selectedTier.deliverables?.map((item, index) => (
+                        <li key={index}>✓ {item}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <ul>
+                      {service.includes?.map((item, index) => (
+                        <li key={index}>✓ {item}</li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {service.delivery_time_days && (
+                    <div className="delivery-info">
+                      <strong>Delivery Time:</strong> {service.delivery_time_days} days
+                    </div>
+                  )}
+
+                  {service.revisions_included !== null && service.revisions_included !== undefined && (
+                    <div className="revisions-info">
+                      <strong>Revisions:</strong>{' '}
+                      {service.revisions_included === -1
+                        ? 'Unlimited'
+                        : `${service.revisions_included} included`}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="summary-row">
-                <span>Shipping:</span>
-                <span>$0.00</span>
-              </div>
-              <div className="summary-row">
-                <span>Tax:</span>
-                <span>$0.00</span>
-              </div>
-              <div className="summary-row summary-total">
-                <span>Total:</span>
-                <span>${cart?.total.toFixed(2)}</span>
+
+              <div className="checkout-card trust-signals">
+                <h3>Why Order With Us?</h3>
+                <ul>
+                  <li>✓ Secure payment processing</li>
+                  <li>✓ Project milestone tracking</li>
+                  <li>✓ Direct messaging with creator</li>
+                  <li>✓ Deliverable approval system</li>
+                  <li>✓ Revision management</li>
+                  <li>✓ Money-back guarantee</li>
+                </ul>
               </div>
             </div>
-
-            <button
-              type="submit"
-              className="btn-primary btn-place-order"
-              disabled={processing}
-            >
-              {processing ? 'Processing...' : 'Place Order'}
-            </button>
-
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => navigate('/cart')}
-              disabled={processing}
-            >
-              Back to Cart
-            </button>
           </div>
-        </form>
+        </div>
       </main>
-
-      <Modal
-        isOpen={modal.isOpen}
-        onClose={closeModal}
-        title="✅ Order Placed Successfully!"
-        actions={
-          <button className="btn-primary" onClick={closeModal}>
-            Continue Shopping
-          </button>
-        }
-      >
-        <p>{modal.message}</p>
-      </Modal>
 
       <Toast
         message={toast.message}

@@ -14,7 +14,13 @@ import Live from './pages/Live';
 import Messages from './pages/Messages';
 import Activity from './pages/Activity';
 import Upload from './pages/Upload';
+import CreateService from './pages/CreateService';
+import ServiceDetail from './pages/ServiceDetail';
+import Orders from './pages/Orders';
+import OrderDetail from './pages/OrderDetail';
+import Payment from './pages/Payment';
 import Profile from './pages/Profile';
+import Verification from './pages/Verification';
 import Admin from './pages/Admin';
 import { authAPI } from './api/client';
 
@@ -23,7 +29,7 @@ const PrivateRoute = ({ children }) => {
 };
 
 const PublicRoute = ({ children }) => {
-  return !authAPI.isAuthenticated() ? children : <Navigate to="/" />;
+  return !authAPI.isAuthenticated() ? children : <Navigate to="/shop" />;
 };
 
 function App() {
@@ -58,7 +64,7 @@ function App() {
           path="/"
           element={
             <PrivateRoute>
-              <Feed />
+              <Shop />
             </PrivateRoute>
           }
         />
@@ -143,10 +149,58 @@ function App() {
           }
         />
         <Route
+          path="/services/create"
+          element={
+            <PrivateRoute>
+              <CreateService />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/services/:id"
+          element={
+            <PrivateRoute>
+              <ServiceDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <PrivateRoute>
+              <Orders />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/orders/:id"
+          element={
+            <PrivateRoute>
+              <OrderDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/payment/:orderId"
+          element={
+            <PrivateRoute>
+              <Payment />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/profile"
           element={
             <PrivateRoute>
               <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/verification"
+          element={
+            <PrivateRoute>
+              <Verification />
             </PrivateRoute>
           }
         />
@@ -158,8 +212,8 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route path="/feed" element={<Navigate to="/" />} />
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="/feed" element={<Navigate to="/shop" />} />
+        <Route path="*" element={<Navigate to="/shop" />} />
       </Routes>
     </Router>
   );

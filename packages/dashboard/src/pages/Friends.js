@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { followsAPI, accountsAPI } from '../api/client';
+// Deprecated social features - will be removed in Sprint 2
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import '../styles/friends.css';

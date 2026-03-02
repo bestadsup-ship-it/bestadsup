@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { productsAPI, cartAPI } from '../api/client';
+import { servicesAPI, cartAPI } from '../api/client';
 import Sidebar from '../components/Sidebar';
+import ServiceCard from '../components/ServiceCard';
 import Toast from '../components/Toast';
 import { emitCartUpdate } from '../utils/events';
 import '../styles/shop.css';
 
 function Shop() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
+  const [services, setServices] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [loading, setLoading] = useState(true);
@@ -24,18 +25,19 @@ function Shop() {
     setLoading(true);
     setError('');
     try {
-      const [productsData, categoriesData] = await Promise.all([
-        productsAPI.getAll(),
-        productsAPI.getCategories(),
+      const [servicesData, categoriesData] = await Promise.all([
+        servicesAPI.getAll(),
+        servicesAPI.getCategories(),
       ]);
-      setProducts(productsData);
-      setCategories(['All', ...categoriesData]);
+      setServices(servicesData || []);
+      // Extract category slugs from category objects
+      const categoryList = categoriesData?.map(cat => cat.slug) || [];
+      setCategories(['All', ...categoryList]);
     } catch (err) {
-      console.error('Error loading products:', err);
-      // Only show error if it's an actual failure, not an empty result
-      if (err.response?.status !== 404) {
-        setError('Failed to load services. Please try again.');
-      }
+      console.error('Error loading services:', err);
+      // Set empty arrays instead of showing error - user might just not have data yet
+      setServices([]);
+      setCategories(['All']);
     } finally {
       setLoading(false);
     }
@@ -67,9 +69,9 @@ function Shop() {
     setToast({ isVisible: false, type: '', message: '' });
   };
 
-  const filteredProducts = selectedCategory === 'All'
-    ? products
-    : products.filter(p => p.category === selectedCategory);
+  const filteredServices = selectedCategory === 'All'
+    ? services
+    : services.filter(s => s.category === selectedCategory);
 
   if (loading) {
     return (
@@ -87,8 +89,8 @@ function Shop() {
       <Sidebar />
       <main className="page-main">
         <div className="page-header">
-          <h1>💼 Services Marketplace</h1>
-          <p>Hire proven B2B marketing professionals</p>
+          <h1>Find Your SaaS Marketer</h1>
+          <p>Fixed prices. Proven results. Hire in minutes.</p>
         </div>
 
         {error && <div className="error-message">{error}</div>}
@@ -106,32 +108,30 @@ function Shop() {
         </div>
 
         <div className="products-grid">
-          {!error && filteredProducts.length === 0 ? (
-            <div className="empty-state">
-              <p>No services available in this category</p>
+          {!error && filteredServices.length === 0 ? (
+            <div className="empty-state" style={{ padding: '60px 20px', textAlign: 'center' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>💼</div>
+              <h3 style={{ marginBottom: '8px' }}>
+                {services.length === 0 ? 'Coming Soon' : `No services in "${selectedCategory}"`}
+              </h3>
+              <p style={{ color: '#666', marginBottom: '20px', maxWidth: '400px', margin: '0 auto' }}>
+                {services.length === 0
+                  ? 'We\'re onboarding vetted SaaS marketing experts. Want early access?'
+                  : 'Try a different category or check back soon.'}
+              </p>
+              {services.length === 0 && (
+                <button
+                  className="btn-primary"
+                  onClick={() => window.location.href = '/signup'}
+                  style={{ marginTop: '16px' }}
+                >
+                  Join Waitlist
+                </button>
+              )}
             </div>
           ) : (
-            filteredProducts.map(product => (
-              <div key={product.id} className="product-card">
-                <div className="product-image">
-                  <img src={product.imageUrl} alt={product.name} />
-                </div>
-                <div className="product-info">
-                  <span className="product-category">{product.category}</span>
-                  <h3 className="product-name">{product.name}</h3>
-                  <p className="product-description">{product.description}</p>
-                  <div className="product-footer">
-                    <span className="product-price">${product.price.toFixed(2)}</span>
-                    <button
-                      className="btn-primary"
-                      onClick={() => handleAddToCart(product.id)}
-                      disabled={addingToCart === product.id || product.stockQuantity === 0}
-                    >
-                      {addingToCart === product.id ? 'Booking...' : product.stockQuantity === 0 ? 'Unavailable' : 'Book Service'}
-                    </button>
-                  </div>
-                </div>
-              </div>
+            filteredServices.map(service => (
+              <ServiceCard key={service.id} service={service} />
             ))
           )}
         </div>

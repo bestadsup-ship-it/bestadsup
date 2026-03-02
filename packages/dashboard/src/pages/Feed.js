@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { authAPI, postsAPI, commentsAPI, notificationsAPI } from '../api/client';
+import { authAPI, postsAPI } from '../api/client';
 import Sidebar from '../components/Sidebar';
 import CreatePost from '../components/CreatePost';
 import PostCard from '../components/PostCard';

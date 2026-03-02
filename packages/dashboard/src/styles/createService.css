@@ -1,0 +1,343 @@
+/* Create Service Page Styles */
+
+.create-service-container {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.service-form {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.form-section {
+  margin-bottom: 40px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.form-section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="url"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  background: white;
+  transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-group small {
+  display: block;
+  font-size: 12px;
+  color: #6B7280;
+  margin-top: 4px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* Array Input Fields */
+.array-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.array-input-row input {
+  flex: 1;
+}
+
+.btn-add,
+.btn-add-small {
+  background: #F3F4F6;
+  color: #374151;
+  border: 1px dashed #D1D5DB;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.btn-add:hover,
+.btn-add-small:hover {
+  background: #E5E7EB;
+  border-color: #9CA3AF;
+}
+
+.btn-add-small {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.btn-remove {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-remove:hover {
+  background: #FEE2E2;
+  border-color: #F87171;
+}
+
+/* Portfolio Items */
+.portfolio-item-group,
+.faq-group,
+.tier-group {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.portfolio-header,
+.faq-header,
+.tier-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.portfolio-header h4,
+.faq-header h4,
+.tier-header h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+/* Section Header with Toggle */
+.section-header-with-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header-with-toggle h2 {
+  margin: 0;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background: #3B82F6;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2563EB;
+}
+
+.btn-primary:disabled {
+  background: #9CA3AF;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: white;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+}
+
+.btn-secondary:hover {
+  background: #F9FAFB;
+}
+
+/* Service Tips Sidebar */
+.service-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tips-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tips-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+.tips-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tips-card li {
+  font-size: 14px;
+  color: #6B7280;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.tips-card li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #3B82F6;
+  font-weight: bold;
+}
+
+.tips-card li strong {
+  color: #374151;
+}
+
+/* Error Message */
+.error-message {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #DC2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .create-service-container {
+    grid-template-columns: 1fr;
+  }
+
+  .service-tips {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .create-service-container {
+    padding: 16px;
+  }
+
+  .service-form {
+    padding: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-section h2 {
+    font-size: 18px;
+  }
+
+  .portfolio-item-group,
+  .faq-group,
+  .tier-group {
+    padding: 16px;
+  }
+
+  .section-header-with-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

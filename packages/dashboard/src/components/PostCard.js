@@ -1,78 +1,10 @@
 import React, { useState } from 'react';
-import { postsAPI, followsAPI, savesAPI, authAPI } from '../api/client';
+import { authAPI } from '../api/client';
 import '../styles/postCard.css';
 
 function PostCard({ post, hideActions = false, onCommentClick, onUpdate, onTagClick }) {
-  const [liked, setLiked] = useState(post.isLiked || false);
-  const [likes, setLikes] = useState(post.likes || 0);
-  const [following, setFollowing] = useState(post.isFollowingAuthor || false);
-  const [saved, setSaved] = useState(post.isSaved || false);
-  const [loading, setLoading] = useState(false);
-
   const currentUser = authAPI.getUser();
   const isOwnPost = currentUser && post.author.email === currentUser.email;
-
-  const handleLike = async () => {
-    if (loading) return;
-    setLoading(true);
-
-    try {
-      if (liked) {
-        const response = await postsAPI.unlike(post.id);
-        setLikes(response.likes);
-        setLiked(false);
-      } else {
-        const response = await postsAPI.like(post.id);
-        setLikes(response.likes);
-        setLiked(true);
-      }
-      if (onUpdate) onUpdate();
-    } catch (error) {
-      console.error('Error toggling like:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFollow = async () => {
-    if (loading || !post.author.id) return;
-    setLoading(true);
-
-    try {
-      if (following) {
-        await followsAPI.unfollow(post.author.id);
-        setFollowing(false);
-      } else {
-        await followsAPI.follow(post.author.id);
-        setFollowing(true);
-      }
-      if (onUpdate) onUpdate();
-    } catch (error) {
-      console.error('Error toggling follow:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async () => {
-    if (loading) return;
-    setLoading(true);
-
-    try {
-      if (saved) {
-        await savesAPI.unsave(post.id);
-        setSaved(false);
-      } else {
-        await savesAPI.save(post.id);
-        setSaved(true);
-      }
-      if (onUpdate) onUpdate();
-    } catch (error) {
-      console.error('Error toggling save:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -160,52 +92,12 @@ function PostCard({ post, hideActions = false, onCommentClick, onUpdate, onTagCl
 
       {!hideActions && (
         <div className="post-actions-sidebar">
-          {post.author.id && !isOwnPost && (
-            <button
-              className={`action-btn-circle follow-action ${following ? 'following' : ''}`}
-              onClick={handleFollow}
-              title={following ? 'Unfollow' : 'Follow'}
-              disabled={loading}
-            >
-              <img src={post.author.avatar || '/BestAdsUp.jpg'} alt={post.author.name} className="action-avatar-img" />
-              {!following && (
-                <span className="follow-plus-icon">+</span>
-              )}
-            </button>
-          )}
-
-          <button
-            className={`action-btn-circle ${liked ? 'liked' : ''}`}
-            onClick={handleLike}
-            title={liked ? 'Unlike' : 'Like'}
-            disabled={loading}
-          >
-            <span className="action-icon">{liked ? '❤️' : '🤍'}</span>
-            <span className="action-count">{likes > 0 ? likes : 0}</span>
-          </button>
-
           <button
             className="action-btn-circle"
-            title="Comment"
-            onClick={onCommentClick}
+            title="View Details"
           >
-            <span className="action-icon">💬</span>
-            <span className="action-count">{post.commentsCount || 0}</span>
-          </button>
-
-          <button
-            className={`action-btn-circle ${saved ? 'saved' : ''}`}
-            onClick={handleSave}
-            title={saved ? 'Unsave' : 'Save'}
-            disabled={loading}
-          >
-            <span className="action-icon">{saved ? '🔖' : '📑'}</span>
-            <span className="action-count">{post.savesCount || 0}</span>
-          </button>
-
-          <button className="action-btn-circle" title="Share">
-            <span className="action-icon">➤</span>
-            <span className="action-count">0</span>
+            <span className="action-icon">👁️</span>
+            <span className="action-count">{post.views || 0}</span>
           </button>
 
           <img src={post.author.avatar || '/BestAdsUp.jpg'} alt={post.author.name} className="action-avatar-bottom" />
