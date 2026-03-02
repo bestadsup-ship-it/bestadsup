@@ -1,0 +1,398 @@
+/* Verification Badge Component Styles */
+
+.verification-badge-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.verification-badge-container.small {
+  font-size: 12px;
+  gap: 4px;
+}
+
+.verification-badge-container.medium {
+  font-size: 14px;
+  gap: 8px;
+}
+
+.verification-badge-container.large {
+  font-size: 16px;
+  gap: 12px;
+}
+
+/* Main verification level badge */
+.verification-level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.verification-badge-container.small .verification-level-badge {
+  padding: 4px 8px;
+  font-size: 12px;
+  gap: 4px;
+}
+
+.verification-badge-container.large .verification-level-badge {
+  padding: 8px 16px;
+  font-size: 16px;
+  gap: 8px;
+}
+
+.verification-level-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.badge-icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.1em;
+}
+
+.badge-text {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Service badges (GA4, HubSpot, Stripe) */
+.service-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.service-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.verification-badge-container.small .service-badge {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+}
+
+.verification-badge-container.large .service-badge {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+}
+
+.service-badge:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.service-badge.verified {
+  opacity: 1;
+}
+
+.service-badge.partial {
+  opacity: 0.7;
+}
+
+.service-icon {
+  font-size: 16px;
+}
+
+/* Verification tooltip */
+.verification-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  min-width: 320px;
+  max-width: 400px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+  animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #E5E7EB;
+  background: #F9FAFB;
+}
+
+.tooltip-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.tooltip-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #9CA3AF;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.tooltip-close:hover {
+  color: #111827;
+}
+
+.tooltip-content {
+  padding: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.verification-item {
+  padding: 12px;
+  border-radius: 8px;
+  background: #F9FAFB;
+  margin-bottom: 8px;
+}
+
+.verification-item:last-child {
+  margin-bottom: 0;
+}
+
+.verification-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.verification-icon {
+  font-size: 20px;
+}
+
+.verification-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #111827;
+  flex: 1;
+}
+
+.verification-level-tag {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.verification-level-tag.verified {
+  background: #D1FAE5;
+  color: #10B981;
+}
+
+.verification-level-tag.partial {
+  background: #FEF3C7;
+  color: #F59E0B;
+}
+
+.verification-description {
+  font-size: 13px;
+  color: #6B7280;
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.verification-date {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+.tooltip-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #E5E7EB;
+  background: #F9FAFB;
+}
+
+.tooltip-note {
+  font-size: 12px;
+  color: #6B7280;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Verification Score Component */
+.verification-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-ring {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 4px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  position: relative;
+}
+
+.score-value {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.score-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Verified Metric Card */
+.verified-metric-card {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.verified-metric-card:hover {
+  border-color: #10B981;
+  box-shadow: 0 2px 12px rgba(16, 185, 129, 0.1);
+  transform: translateY(-2px);
+}
+
+.metric-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.metric-source-icon {
+  font-size: 20px;
+}
+
+.metric-name {
+  font-size: 14px;
+  color: #6B7280;
+  font-weight: 500;
+  flex: 1;
+  text-transform: capitalize;
+}
+
+.verified-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #10B981;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.metric-unit {
+  font-size: 16px;
+  font-weight: 500;
+  color: #6B7280;
+}
+
+.metric-period {
+  font-size: 13px;
+  color: #9CA3AF;
+  margin-bottom: 12px;
+}
+
+.metric-proof-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #3B82F6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.metric-proof-link:hover {
+  color: #2563EB;
+  text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .verification-tooltip {
+    min-width: 280px;
+    max-width: 90vw;
+  }
+
+  .verification-level-badge {
+    font-size: 13px;
+    padding: 5px 10px;
+  }
+
+  .service-badge {
+    width: 28px;
+    height: 28px;
+  }
+
+  .score-ring {
+    width: 50px;
+    height: 50px;
+  }
+
+  .score-value {
+    font-size: 16px;
+  }
+
+  .metric-value {
+    font-size: 24px;
+  }
+}

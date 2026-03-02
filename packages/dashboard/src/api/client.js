@@ -168,19 +168,14 @@ export const analyticsAPI = {
   },
 };
 
-// Posts API
+// Posts API - Portfolio posts for creator showcases
 export const postsAPI = {
-  getAll: async (limit = 50, offset = 0) => {
-    const response = await apiClient.get('/posts', {
-      params: { limit, offset },
-    });
-    return response.data;
-  },
+  getAll: async (limit = 50, offset = 0, category = null, account_id = null) => {
+    const params = { limit, offset };
+    if (category) params.category = category;
+    if (account_id) params.account_id = account_id;
 
-  getByTag: async (tag, limit = 50, offset = 0) => {
-    const response = await apiClient.get('/posts', {
-      params: { tag, limit, offset },
-    });
+    const response = await apiClient.get('/posts', { params });
     return response.data;
   },
 
@@ -191,24 +186,8 @@ export const postsAPI = {
     return response.data;
   },
 
-  getExplore: async (filter = 'trending', limit = 50, offset = 0) => {
-    const response = await apiClient.get('/posts/explore', {
-      params: { filter, limit, offset },
-    });
-    return response.data;
-  },
-
-  getFollowing: async (limit = 50, offset = 0) => {
-    const response = await apiClient.get('/posts/following', {
-      params: { limit, offset },
-    });
-    return response.data;
-  },
-
-  getLiked: async (limit = 50, offset = 0) => {
-    const response = await apiClient.get('/posts/liked', {
-      params: { limit, offset },
-    });
+  getById: async (id) => {
+    const response = await apiClient.get(`/posts/${id}`);
     return response.data;
   },
 
@@ -217,20 +196,8 @@ export const postsAPI = {
     return response.data;
   },
 
-  getTrendingTags: async (limit = 15) => {
-    const response = await apiClient.get('/tags/trending', {
-      params: { limit },
-    });
-    return response.data;
-  },
-
-  like: async (postId) => {
-    const response = await apiClient.post(`/posts/${postId}/like`);
-    return response.data;
-  },
-
-  unlike: async (postId) => {
-    const response = await apiClient.delete(`/posts/${postId}/like`);
+  update: async (id, postData) => {
+    const response = await apiClient.patch(`/posts/${id}`, postData);
     return response.data;
   },
 
@@ -240,79 +207,7 @@ export const postsAPI = {
   },
 };
 
-// Comments API
-export const commentsAPI = {
-  getForPost: async (postId) => {
-    const response = await apiClient.get(`/comments/post/${postId}`);
-    return response.data;
-  },
-
-  create: async (postId, commentData) => {
-    const response = await apiClient.post(`/comments/post/${postId}`, commentData);
-    return response.data;
-  },
-
-  delete: async (commentId) => {
-    const response = await apiClient.delete(`/comments/${commentId}`);
-    return response.data;
-  },
-
-  like: async (commentId) => {
-    const response = await apiClient.post(`/comments/${commentId}/like`);
-    return response.data;
-  },
-
-  unlike: async (commentId) => {
-    const response = await apiClient.delete(`/comments/${commentId}/like`);
-    return response.data;
-  },
-};
-
-// Follows API
-export const followsAPI = {
-  follow: async (accountId) => {
-    const response = await apiClient.post(`/follows/${accountId}`);
-    return response.data;
-  },
-
-  unfollow: async (accountId) => {
-    const response = await apiClient.delete(`/follows/${accountId}`);
-    return response.data;
-  },
-
-  getFollowers: async () => {
-    const response = await apiClient.get('/follows/followers');
-    return response.data;
-  },
-
-  getFollowing: async () => {
-    const response = await apiClient.get('/follows/following');
-    return response.data;
-  },
-
-  checkFollowStatus: async (accountId) => {
-    const response = await apiClient.get(`/follows/status/${accountId}`);
-    return response.data;
-  },
-};
-
-// Saves/Bookmarks API
-export const savesAPI = {
-  save: async (postId) => {
-    const response = await apiClient.post(`/saves/${postId}`);
-    return response.data;
-  },
-
-  unsave: async (postId) => {
-    const response = await apiClient.delete(`/saves/${postId}`);
-    return response.data;
-  },
-
-  getSaved: async () => {
-    const response = await apiClient.get('/saves');
-    return response.data;
-  },
-};
+// Comments API - Removed (not needed for marketplace)
 
 // Profile API
 export const profileAPI = {
@@ -321,31 +216,13 @@ export const profileAPI = {
     return response.data;
   },
 
-  getProfileByUsername: async (username) => {
-    const response = await apiClient.get(`/profile/${username}`);
-    return response.data;
-  },
-
   updateProfile: async (profileData) => {
     const response = await apiClient.patch('/profile', profileData);
     return response.data;
   },
-
-  updateCreatorProfile: async (creatorData) => {
-    const response = await apiClient.patch('/profile/creator', creatorData);
-    return response.data;
-  },
 };
 
-// Accounts API
-export const accountsAPI = {
-  getSuggested: async (limit = 10) => {
-    const response = await apiClient.get('/accounts/suggested', {
-      params: { limit },
-    });
-    return response.data;
-  },
-};
+// Accounts API - Removed (not needed for marketplace)
 
 // Products API
 export const productsAPI = {
@@ -410,69 +287,301 @@ export const cartAPI = {
   },
 };
 
-// Notifications API
-export const notificationsAPI = {
-  getAll: async (filter = 'all', limit = 50, offset = 0) => {
-    const response = await apiClient.get('/notifications', {
-      params: { filter, limit, offset },
-    });
+// Services API
+export const servicesAPI = {
+  // Get all services with optional filters
+  getAll: async (filters = {}) => {
+    const { category, creator_id, verified_only, limit, offset } = filters;
+    const params = {};
+    if (category) params.category = category;
+    if (creator_id) params.creator_id = creator_id;
+    if (verified_only) params.verified_only = verified_only;
+    if (limit) params.limit = limit;
+    if (offset) params.offset = offset;
+
+    const response = await apiClient.get('/services', { params });
     return response.data;
   },
 
-  markAsRead: async (notificationId) => {
-    const response = await apiClient.patch('/notifications/mark-read', {
-      notificationId,
-    });
+  // Get service categories
+  getCategories: async () => {
+    const response = await apiClient.get('/services/categories');
     return response.data;
   },
 
-  markAllAsRead: async () => {
-    const response = await apiClient.patch('/notifications/mark-read', {
-      markAll: true,
-    });
+  // Get single service by ID
+  getById: async (id) => {
+    const response = await apiClient.get(`/services/${id}`);
     return response.data;
   },
 
-  getUnreadCount: async () => {
-    const response = await apiClient.get('/notifications/count');
+  // Create new service
+  create: async (serviceData) => {
+    const response = await apiClient.post('/services', serviceData);
+    return response.data;
+  },
+
+  // Update service
+  update: async (id, serviceData) => {
+    const response = await apiClient.put(`/services/${id}`, serviceData);
+    return response.data;
+  },
+
+  // Delete service
+  delete: async (id) => {
+    const response = await apiClient.delete(`/services/${id}`);
     return response.data;
   },
 };
 
-// Messages API
-export const messagesAPI = {
-  getConversations: async () => {
-    const response = await apiClient.get('/messages/conversations');
+// Verification API
+export const verificationAPI = {
+  // Get verification badges
+  getBadges: async () => {
+    const response = await apiClient.get('/verification/badges');
     return response.data;
   },
 
-  getMessages: async (conversationId) => {
-    const response = await apiClient.get(`/messages/${conversationId}`);
-    return response.data;
-  },
-
-  sendMessage: async (conversationId, content, recipientId = null) => {
-    const response = await apiClient.post('/messages', {
-      conversationId,
-      content,
-      recipientId,
+  // Get verified metrics
+  getMetrics: async (verifiedOnly = true) => {
+    const response = await apiClient.get('/verification/metrics', {
+      params: { verified_only: verifiedOnly },
     });
     return response.data;
   },
+
+  // Add a new metric
+  addMetric: async (metricData) => {
+    const response = await apiClient.post('/verification/metrics', metricData);
+    return response.data;
+  },
+
+  // Get verification requests
+  getRequests: async () => {
+    const response = await apiClient.get('/verification/requests');
+    return response.data;
+  },
+
+  // Create verification request
+  createRequest: async (requestData) => {
+    const response = await apiClient.post('/verification/requests', requestData);
+    return response.data;
+  },
+
+  // Get third-party connections
+  getConnections: async () => {
+    const response = await apiClient.get('/verification/connections');
+    return response.data;
+  },
+
+  // Get verification stats
+  getStats: async () => {
+    const response = await apiClient.get('/verification/stats');
+    return response.data;
+  },
+
+  // Disconnect a service
+  disconnectService: async (serviceName) => {
+    const response = await apiClient.delete(`/verification/connections/${serviceName}`);
+    return response.data;
+  },
+
+  // Initiate OAuth flow for a service
+  initiateOAuth: async (serviceName) => {
+    const response = await apiClient.post('/verification/oauth/initiate', { serviceName });
+    return response.data;
+  },
 };
+
+// Orders API
+export const ordersAPI = {
+  // Get all orders for current user (buyer or creator)
+  getAll: async (filters = {}) => {
+    const { status, role, limit, offset } = filters;
+    const params = {};
+    if (status) params.status = status;
+    if (role) params.role = role;
+    if (limit) params.limit = limit;
+    if (offset) params.offset = offset;
+
+    const response = await apiClient.get('/orders', { params });
+    return response.data;
+  },
+
+  // Get single order by ID
+  getById: async (id) => {
+    const response = await apiClient.get(`/orders/${id}`);
+    return response.data;
+  },
+
+  // Create new order
+  create: async (orderData) => {
+    const response = await apiClient.post('/orders', orderData);
+    return response.data;
+  },
+
+  // Update order status
+  updateStatus: async (id, status, notes = null) => {
+    const response = await apiClient.patch(`/orders/${id}/status`, { status, notes });
+    return response.data;
+  },
+
+  // Get order messages
+  getMessages: async (id) => {
+    const response = await apiClient.get(`/orders/${id}/messages`);
+    return response.data;
+  },
+
+  // Send message
+  sendMessage: async (id, message, attachments = []) => {
+    const response = await apiClient.post(`/orders/${id}/messages`, { message, attachments });
+    return response.data;
+  },
+
+  // Get deliverables
+  getDeliverables: async (id) => {
+    const response = await apiClient.get(`/orders/${id}/deliverables`);
+    return response.data;
+  },
+
+  // Upload deliverable
+  uploadDeliverable: async (id, deliverableData) => {
+    const response = await apiClient.post(`/orders/${id}/deliverables`, deliverableData);
+    return response.data;
+  },
+
+  // Approve/reject deliverable
+  updateDeliverable: async (orderId, deliverableId, status, reason = null) => {
+    const response = await apiClient.patch(`/orders/${orderId}/deliverables/${deliverableId}`, {
+      status,
+      rejection_reason: reason,
+    });
+    return response.data;
+  },
+
+  // Get order timeline
+  getTimeline: async (id) => {
+    const response = await apiClient.get(`/orders/${id}/timeline`);
+    return response.data;
+  },
+
+  // Request revision
+  requestRevision: async (id, description) => {
+    const response = await apiClient.post(`/orders/${id}/revisions`, { description });
+    return response.data;
+  },
+};
+
+// Payments API
+export const paymentsAPI = {
+  // Create payment intent for an order
+  createPaymentIntent: async (orderId) => {
+    const response = await apiClient.post('/payments/create-payment-intent', {
+      order_id: orderId,
+    });
+    return response.data;
+  },
+
+  // Confirm payment after successful Stripe checkout
+  confirmPayment: async (paymentIntentId) => {
+    const response = await apiClient.post('/payments/confirm-payment', {
+      payment_intent_id: paymentIntentId,
+    });
+    return response.data;
+  },
+
+  // Get payment status for an order
+  getPaymentStatus: async (orderId) => {
+    const response = await apiClient.get(`/payments/status/${orderId}`);
+    return response.data;
+  },
+};
+
+// Reviews API
+export const reviewsAPI = {
+  // Create a review for an order
+  create: async (reviewData) => {
+    const response = await apiClient.post('/reviews', reviewData);
+    return response.data;
+  },
+
+  // Get reviews for a product
+  getByProduct: async (productId, page = 1, limit = 10) => {
+    const response = await apiClient.get(`/reviews/product/${productId}`, {
+      params: { page, limit },
+    });
+    return response.data;
+  },
+
+  // Get reviews for a creator
+  getByCreator: async (creatorId, page = 1, limit = 10) => {
+    const response = await apiClient.get(`/reviews/creator/${creatorId}`, {
+      params: { page, limit },
+    });
+    return response.data;
+  },
+
+  // Get rating stats for a product
+  getProductStats: async (productId) => {
+    const response = await apiClient.get(`/reviews/stats/product/${productId}`);
+    return response.data;
+  },
+
+  // Get rating stats for a creator
+  getCreatorStats: async (creatorId) => {
+    const response = await apiClient.get(`/reviews/stats/creator/${creatorId}`);
+    return response.data;
+  },
+
+  // Get review for a specific order
+  getByOrder: async (orderId) => {
+    const response = await apiClient.get(`/reviews/order/${orderId}`);
+    return response.data;
+  },
+
+  // Update a review
+  update: async (reviewId, reviewData) => {
+    const response = await apiClient.put(`/reviews/${reviewId}`, reviewData);
+    return response.data;
+  },
+
+  // Add creator response to a review
+  addResponse: async (reviewId, responseText) => {
+    const response = await apiClient.post(`/reviews/${reviewId}/response`, {
+      creator_response: responseText,
+    });
+    return response.data;
+  },
+
+  // Flag a review for moderation
+  flag: async (reviewId, flagReason) => {
+    const response = await apiClient.post(`/reviews/${reviewId}/flag`, {
+      flag_reason: flagReason,
+    });
+    return response.data;
+  },
+
+  // Delete a review
+  delete: async (reviewId) => {
+    const response = await apiClient.delete(`/reviews/${reviewId}`);
+    return response.data;
+  },
+};
+
+// Notifications API - Removed (will be reimplemented for project updates)
+// Messages API - Removed (replaced by project_messages in projects table)
 
 export default {
   authAPI,
   adUnitsAPI,
   analyticsAPI,
   postsAPI,
-  commentsAPI,
-  followsAPI,
-  savesAPI,
   profileAPI,
-  accountsAPI,
   productsAPI,
+  servicesAPI,
   cartAPI,
-  notificationsAPI,
-  messagesAPI,
+  verificationAPI,
+  ordersAPI,
+  paymentsAPI,
+  reviewsAPI,
 };
