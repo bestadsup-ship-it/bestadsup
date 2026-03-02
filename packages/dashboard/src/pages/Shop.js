@@ -29,9 +29,9 @@ function Shop() {
         servicesAPI.getAll(),
         servicesAPI.getCategories(),
       ]);
-      setServices(servicesData || []);
+      setServices(Array.isArray(servicesData) ? servicesData : []);
       // Extract category slugs from category objects
-      const categoryList = categoriesData?.map(cat => cat.slug) || [];
+      const categoryList = Array.isArray(categoriesData) ? categoriesData.map(cat => cat.slug) : [];
       setCategories(['All', ...categoryList]);
     } catch (err) {
       console.error('Error loading services:', err);

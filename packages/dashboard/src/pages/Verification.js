@@ -44,11 +44,11 @@ function Verification() {
         verificationAPI.getRequests(),
       ]);
 
-      setVerificationStats(statsData);
-      setBadges(badgesData);
-      setMetrics(metricsData);
-      setConnections(connectionsData);
-      setRequests(requestsData);
+      setVerificationStats(statsData || {});
+      setBadges(Array.isArray(badgesData) ? badgesData : []);
+      setMetrics(Array.isArray(metricsData) ? metricsData : []);
+      setConnections(Array.isArray(connectionsData) ? connectionsData : []);
+      setRequests(Array.isArray(requestsData) ? requestsData : []);
     } catch (error) {
       console.error('Error loading verification data:', error);
       // Set empty defaults on error

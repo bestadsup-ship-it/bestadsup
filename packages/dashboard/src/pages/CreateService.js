@@ -57,7 +57,7 @@ function CreateService() {
   const loadCategories = async () => {
     try {
       const data = await servicesAPI.getCategories();
-      setCategories(data || []);
+      setCategories(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Error loading categories:', err);
       setCategories([]);
