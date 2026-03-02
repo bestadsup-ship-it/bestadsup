@@ -2,6 +2,16 @@
 
 Complete guide for deploying BestAdsUp to Vercel with production-ready configuration.
 
+## ⚠️ CRITICAL: Two-Project Deployment Required
+
+This is a **monorepo**. You **MUST** deploy as **two separate Vercel projects**:
+1. **Backend API** - Deploy from `services/control-plane` root directory
+2. **Frontend Dashboard** - Deploy from `packages/dashboard` root directory
+
+**DO NOT** deploy from the repository root - Vercel will try to build it as a Next.js app and fail.
+
+---
+
 ## Table of Contents
 
 1. [Deployment Architecture](#deployment-architecture)
@@ -85,12 +95,14 @@ Deploy from root with routing configuration (simpler but less flexible).
 
 1. Go to https://vercel.com/new
 2. Import your GitHub repository
-3. **Project Settings:**
+3. **⚠️ CRITICAL - Project Settings:**
    - **Framework Preset:** Other
-   - **Root Directory:** `services/control-plane`
-   - **Build Command:** `npm install && npm run build`
-   - **Output Directory:** `.` (leave as root)
+   - **Root Directory:** `services/control-plane` ← **MUST SET THIS!**
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
    - **Install Command:** `npm install`
+
+**Important:** The "Root Directory" setting tells Vercel to build ONLY the backend API from the `services/control-plane` subfolder. Without this, the build will fail.
 
 #### B. Configure Build Settings
 
@@ -183,13 +195,15 @@ Or deploy via GitHub integration (automatic on push).
 #### A. Create New Vercel Project
 
 1. Go to https://vercel.com/new
-2. Import same GitHub repository
-3. **Project Settings:**
+2. **Import same GitHub repository** (yes, import the same repo again!)
+3. **⚠️ CRITICAL - Project Settings:**
    - **Framework Preset:** Other (or React if detected)
-   - **Root Directory:** `packages/dashboard`
+   - **Root Directory:** `packages/dashboard` ← **DIFFERENT ROOT!**
    - **Build Command:** `npm run build`
    - **Output Directory:** `dist`
    - **Install Command:** `npm install`
+
+**Important:** You're creating a second Vercel project from the same GitHub repo, but with a different root directory. This deploys ONLY the frontend.
 
 #### B. Environment Variables
 
